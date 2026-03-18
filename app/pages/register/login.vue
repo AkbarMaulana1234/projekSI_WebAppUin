@@ -1,110 +1,127 @@
-<script setup lang="ts">
-  import { ref } from "vue";
-  // Menggunakan ref untuk data binding
-  const email = ref("");
-  const password = ref("");
-  const isLoading = ref(false);
-
-  const handleLogin = () => {
-    if (!email.value || !password.value) return;
-
-    isLoading.value = true;
-    // Simulasi proses login
-    setTimeout(() => {
-      isLoading.value = false;
-      alert(`Login berhasil untuk: ${email.value}`);
-    }, 1500);
-  };
-</script>
-
 <template>
   <div
-    class="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6"
+    class="flex justify-center h-screen items-center bg-gray-100 overflow-hidden"
   >
-    <!-- Logo/Brand Name -->
-    <div class="mb-8 text-center"></div>
-
-    <!-- Menggunakan BaseCard dengan variant primary -->
-    <BaseCard
-      title="Selamat Datang Kembali"
-      subtitle="Silakan masukkan email dan password Anda"
-      variant="primary"
-      class="max-w-md w-full shadow-xl"
+    <div
+      class="border-4 border-primary rounded-2xl w-full max-w-[420px] bg-bgLogin p-6 shadow-2xl flex flex-col justify-center"
     >
-      <form @submit.prevent="handleLogin" class="space-y-5 py-4">
-        <!-- Menggunakan BaseInput untuk Email -->
-        <BaseInput
-          id="email"
-          v-model="email"
-          label="Alamat Email"
-          type="email"
-          placeholder="contoh@email.com"
-          required
-        />
-
-        <!-- Menggunakan BaseInput untuk Password -->
-        <div class="space-y-1">
-          <BaseInput
-            id="password"
-            v-model="password"
-            label="Kata Sandi"
-            type="password"
-            placeholder="••••••••"
-            required
+      <!-- Header Section -->
+      <section class="flex flex-col items-center mb-6">
+        <div class="bg-white p-2.5 rounded-full shadow-sm mb-3">
+          <img
+            src="~/assets/images/logouin.png"
+            alt="Logo UIN"
+            width="70"
+            height="85"
+            class="object-contain"
           />
-          <div class="flex justify-end">
-            <a
-              href="#"
-              class="text-xs text-primary hover:underline font-semibold"
+        </div>
+
+        <h3
+          class="text-[10px] font-bold text-center text-primary tracking-wider uppercase"
+        >
+          Sistem Informasi Organisasi
+        </h3>
+        <h1
+          class="text-primary text-xl font-extrabold text-center leading-tight mt-1"
+        >
+          E-Organisasi <br />
+          <span class="text-base font-bold">UIN Mahmud Yunus Batusangkar</span>
+        </h1>
+        <div class="mt-2.5 flex items-center gap-2">
+          <span class="h-[1px] w-6 bg-emerald-800/30"></span>
+          <p
+            class="text-center italic text-[10px] text-emerald-900 font-medium"
+          >
+            <q>Kampus Sains Islam, Refleksi Surau Minangkabau</q>
+          </p>
+          <span class="h-[1px] w-6 bg-emerald-800/30"></span>
+        </div>
+      </section>
+
+      <!-- Form Section -->
+      <section class="flex flex-col gap-4">
+        <!-- Username -->
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-bold text-primary ml-1">Username</label>
+          <div class="relative group">
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
             >
-              Lupa kata sandi?
-            </a>
+              <Icon
+                name="uil:user"
+                class="text-primary/60 group-focus-within:text-primary transition-colors"
+                size="18"
+              />
+            </div>
+            <input
+              type="text"
+              placeholder="Masukkan username"
+              class="w-full h-10 pl-10 pr-4 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm shadow-sm"
+            />
           </div>
         </div>
 
-        <!-- Checkbox sederhana -->
-        <label class="flex items-center gap-2 cursor-pointer group w-fit">
-          <input
-            type="checkbox"
-            class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/40 cursor-pointer"
-          />
-          <span
-            class="text-sm text-gray-600 group-hover:text-gray-900 transition-colors"
-            >Ingat saya</span
-          >
-        </label>
+        <!-- Password -->
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-bold text-primary ml-1">Password</label>
+          <div class="relative group">
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+            >
+              <Icon
+                name="uil:lock"
+                class="text-primary/60 group-focus-within:text-primary transition-colors"
+                size="18"
+              />
+            </div>
+            <input
+              type="password"
+              placeholder="Masukkan password"
+              class="w-full h-10 pl-10 pr-10 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm shadow-sm"
+            />
+          </div>
+        </div>
 
-        <!-- Menggunakan BaseButton dengan variant primary -->
-        <BaseButton
-          type="submit"
-          variant="primary"
-          class="w-full h-11"
-          :loading="isLoading"
+        <!-- Remember Me -->
+        <div class="flex items-start gap-2.5 mt-0.5 px-1">
+          <div class="flex items-center h-4">
+            <input
+              id="remember"
+              type="checkbox"
+              class="w-3.5 h-3.5 rounded border-gray-300 text-primary focus:ring-primary accent-primary cursor-pointer"
+            />
+          </div>
+          <label
+            for="remember"
+            class="text-[10px] text-teal-950 leading-tight cursor-pointer select-none"
+          >
+            Ingat akun selama menggunakan browser ini.
+          </label>
+        </div>
+
+        <!-- Login Button -->
+        <button
+          class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-2.5 rounded-lg mt-2 transition-all shadow-md shadow-primary/20 active:scale-[0.98] flex items-center justify-center gap-2 text-sm"
         >
-          Masuk Sekarang
-        </BaseButton>
-      </form>
+          <span>MASUK SISTEM</span>
+          <Icon name="uil:arrow-right" size="18" />
+        </button>
+      </section>
 
-      <!-- Slot footer BaseCard -->
-      <template #footer>
-        <p class="text-center text-sm text-gray-600">
-          Belum punya akun?
-          <NuxtLink
-            to="/register/signup"
-            class="text-primary hover:text-primary/80 underline font-bold transition-colors"
-          >
-            Daftar Gratis
-          </NuxtLink>
+      <!-- Footer Info -->
+      <footer class="mt-6 text-center">
+        <p
+          class="text-[9px] text-gray-400 font-medium uppercase tracking-widest"
+        >
+          &copy; {{ new Date().getFullYear() }} IT Support UIN MY Batusangkar
         </p>
-      </template>
-    </BaseCard>
-
-    <!-- Tombol kembali ke Home -->
-    <NuxtLink
-      to="/"
-      class="mt-8 text-sm text-gray-400 hover:text-gray-600 transition-colors flex items-center gap-2"
-    >
-      <span>&larr;</span> Kembali ke Beranda
-    </NuxtLink>
+      </footer>
+    </div>
   </div>
 </template>
+
+<style scoped>
+  /* Pastikan warna primary dan bgLogin sudah terdefinisi di tailwind.config.js Anda */
+  /* Jika belum, Anda bisa mengganti class 'text-primary' menjadi 'text-green-700' dsb. */
+</style>
