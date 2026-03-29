@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1774768227798,
+      "tag": "0000_overconfident_reavers",
+      "breakpoints": true
+    }
+  ]
+}
