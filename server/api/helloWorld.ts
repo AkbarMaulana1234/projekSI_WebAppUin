@@ -1,3 +1,7 @@
+import { usersTable } from "../db/schema/usersSchema";
+import { useDrizzle } from "../db";
+
 export default defineEventHandler((event) => {
-  return "hello world";
+  const users = useDrizzle().select().from(usersTable);
+  return users;
 });

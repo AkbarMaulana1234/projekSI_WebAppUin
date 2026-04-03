@@ -1,0 +1,1 @@
+ALTER TABLE `users_table` MODIFY COLUMN `role` enum('kaprodi','ormawa','dekan','SPI','PPK','kabag') NOT NULL;

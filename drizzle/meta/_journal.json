@@ -8,6 +8,20 @@
       "when": 1774768227798,
       "tag": "0000_overconfident_reavers",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1775033987579,
+      "tag": "0001_lying_inhumans",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1775199593286,
+      "tag": "0002_yellow_kronos",
+      "breakpoints": true
     }
   ]
 }
