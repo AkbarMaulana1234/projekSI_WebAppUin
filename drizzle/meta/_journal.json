@@ -22,6 +22,20 @@
       "when": 1775199593286,
       "tag": "0002_yellow_kronos",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1775294493381,
+      "tag": "0003_typical_vindicator",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1775295383494,
+      "tag": "0004_absurd_rumiko_fujikawa",
+      "breakpoints": true
     }
   ]
 }

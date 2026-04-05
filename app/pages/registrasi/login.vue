@@ -5,7 +5,6 @@
     <div
       class="border-4 border-primary rounded-2xl w-full max-w-[420px] bg-bgLogin p-6 shadow-2xl flex flex-col justify-center"
     >
-      <!-- Header Section -->
       <section class="flex flex-col items-center mb-6">
         <div class="bg-white p-2.5 rounded-full shadow-sm mb-3">
           <img
@@ -16,7 +15,6 @@
             class="object-contain"
           />
         </div>
-
         <h3
           class="text-[10px] font-bold text-center text-primary tracking-wider uppercase"
         >
@@ -28,20 +26,9 @@
           E-Organisasi <br />
           <span class="text-base font-bold">UIN Mahmud Yunus Batusangkar</span>
         </h1>
-        <div class="mt-2.5 flex items-center gap-2">
-          <span class="h-[1px] w-6 bg-emerald-800/30"></span>
-          <p
-            class="text-center italic text-[10px] text-emerald-900 font-medium"
-          >
-            <q>Kampus Sains Islam, Refleksi Surau Minangkabau</q>
-          </p>
-          <span class="h-[1px] w-6 bg-emerald-800/30"></span>
-        </div>
       </section>
 
-      <!-- Form Section -->
-      <section class="flex flex-col gap-4">
-        <!-- Username -->
+      <form @submit.prevent="handleLogin" class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
           <label class="text-xs font-bold text-primary ml-1">Username</label>
           <div class="relative group">
@@ -55,14 +42,15 @@
               />
             </div>
             <input
-              type="text"
+              v-model="form.id_users"
+              type="number"
+              required
               placeholder="Masukkan username"
               class="w-full h-10 pl-10 pr-4 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm shadow-sm"
             />
           </div>
         </div>
 
-        <!-- Password -->
         <div class="flex flex-col gap-1">
           <label class="text-xs font-bold text-primary ml-1">Password</label>
           <div class="relative group">
@@ -76,18 +64,20 @@
               />
             </div>
             <input
+              v-model="form.password"
               type="password"
+              required
               placeholder="Masukkan password"
               class="w-full h-10 pl-10 pr-10 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm shadow-sm"
             />
           </div>
         </div>
 
-        <!-- Remember Me -->
         <div class="flex items-start gap-2.5 mt-0.5 px-1">
           <div class="flex items-center h-4">
             <input
               id="remember"
+              v-model="form.remember"
               type="checkbox"
               class="w-3.5 h-3.5 rounded border-gray-300 text-primary focus:ring-primary accent-primary cursor-pointer"
             />
@@ -100,16 +90,26 @@
           </label>
         </div>
 
-        <!-- Login Button -->
         <button
-          class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-2.5 rounded-lg mt-2 transition-all shadow-md shadow-primary/20 active:scale-[0.98] flex items-center justify-center gap-2 text-sm"
+          type="submit"
+          :disabled="pending"
+          class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-2.5 rounded-lg mt-2 transition-all shadow-md shadow-primary/20 active:scale-[0.98] flex items-center justify-center gap-2 text-sm disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          <span>MASUK SISTEM</span>
-          <Icon name="uil:arrow-right" size="18" />
+          <span v-if="pending">PROSES...</span>
+          <template v-else>
+            <span>MASUK SISTEM</span>
+            <Icon name="uil:arrow-right" size="18" />
+          </template>
         </button>
-      </section>
 
-      <!-- Footer Info -->
+        <p
+          v-if="errorMsg"
+          class="text-red-500 text-[10px] text-center font-bold uppercase mt-1"
+        >
+          {{ errorMsg }}
+        </p>
+      </form>
+
       <footer class="mt-6 text-center">
         <p
           class="text-[9px] text-gray-400 font-medium uppercase tracking-widest"
@@ -121,7 +121,37 @@
   </div>
 </template>
 
-<style scoped>
-  /* Pastikan warna primary dan bgLogin sudah terdefinisi di tailwind.config.js Anda */
-  /* Jika belum, Anda bisa mengganti class 'text-primary' menjadi 'text-green-700' dsb. */
-</style>
+<script setup>
+  const form = reactive({
+    id_users: "",
+    password: "",
+    remember: false,
+  });
+
+  const pending = ref(false);
+  const errorMsg = ref("");
+
+  const handleLogin = async () => {
+    pending.value = true;
+    errorMsg.value = "";
+
+    try {
+      const response = await $fetch("/api/registrasi/login", {
+        method: "POST",
+        body: {
+          id_users: form.id_users,
+          password: form.password,
+          remember: form.remember,
+        },
+      });
+      if (response.success) {
+        navigateTo("/");
+      }
+    } catch (err) {
+      console.error("Login Gagal:", err);
+      errorMsg.value = err.data?.message || "Username atau Password salah!";
+    } finally {
+      pending.value = false;
+    }
+  };
+</script>

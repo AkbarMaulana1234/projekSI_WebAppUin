@@ -11,4 +11,7 @@ export default defineNuxtConfig({
   pinia: {
     storesDirs: ["@/stores/**"],
   },
+  runtimeConfig: {
+    SecretJwtKey: process.env.SecretJwtKey,
+  },
 });

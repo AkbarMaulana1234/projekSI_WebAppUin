@@ -1,0 +1,1 @@
+ALTER TABLE `users_table` ADD `id_users` varchar(20) NOT NULL;

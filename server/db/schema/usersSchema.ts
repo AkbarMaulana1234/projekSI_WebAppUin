@@ -2,10 +2,11 @@ import { int, mysqlEnum, mysqlTable, varchar } from "drizzle-orm/mysql-core";
 
 export const usersTable = mysqlTable("users_table", {
   id: int("id").autoincrement().primaryKey(),
-  name_lengkap: varchar({ length: 255 }).notNull(),
-  email: varchar({ length: 255 }).notNull().unique(),
-  password: varchar({ length: 12 }).notNull(),
-  jabatan: varchar({ length: 32 }).notNull(),
+  name_lengkap: varchar("name_lengkap", { length: 255 }).notNull(),
+  id_users: varchar("id_users", { length: 25 }).notNull().unique(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  password: varchar("password", { length: 255 }).notNull(),
+  jabatan: varchar("jabatan", { length: 100 }).notNull(),
   role: mysqlEnum("role", [
     "kaprodi",
     "ormawa",
