@@ -1,4 +1,10 @@
-import { int, mysqlEnum, mysqlTable, varchar } from "drizzle-orm/mysql-core";
+import {
+  int,
+  mysqlEnum,
+  mysqlTable,
+  varchar,
+  timestamp,
+} from "drizzle-orm/mysql-core";
 
 export const usersTable = mysqlTable("users_table", {
   id: int("id").autoincrement().primaryKey(),
@@ -15,4 +21,6 @@ export const usersTable = mysqlTable("users_table", {
     "PPK",
     "kabag",
   ]).notNull(),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
 });

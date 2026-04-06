@@ -144,6 +144,7 @@
           remember: form.remember,
         },
       });
+      console.log(response);
       if (response.success) {
         navigateTo("/");
       }
