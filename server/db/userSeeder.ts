@@ -1,59 +1,44 @@
+// db/seed.ts
 import { useDrizzle } from ".";
-import * as schema from "./schema/usersSchema";
+import { usersTable } from "./schema/usersSchema";
 
 const seed = async () => {
   const db = useDrizzle();
 
   console.log("Seeding started...");
 
-  await db.insert(schema.usersTable).values([
+  await db.insert(usersTable).values([
     {
-      id_users: "198501012010121001", // Contoh NIP 18 digit
-      name_lengkap: "Andi Kaprodi",
-      email: "andi@univ.ac.id",
-      password: "pass_kaprodi",
-      jabatan: "Kaprodi Informatika",
+      users_id: "01",
+      email: "kaprodi@univ.ac.id",
+      passwordHash: "pass123",
+      fullName: "Kaprodi Satu",
       role: "kaprodi",
+      isActive: true,
     },
     {
-      id_users: "202100801011002", // Contoh NIM 15 digit
-      name_lengkap: "Budi Ormawa",
-      email: "budi@univ.ac.id",
-      password: "pass_ormawa",
-      jabatan: "Ketua BEM",
+      users_id: "02",
+      email: "ormawa@univ.ac.id",
+      passwordHash: "pass123",
+      fullName: "Ormawa Satu",
       role: "ormawa",
+      isActive: true,
     },
     {
-      id_users: "197505121998032002",
-      name_lengkap: "Sari Dekan",
-      email: "sari@univ.ac.id",
-      password: "pass_dekan",
-      jabatan: "Dekan Fakultas",
-      role: "dekan",
+      users_id: "03",
+      email: "ppk@univ.ac.id",
+      passwordHash: "pass123",
+      fullName: "PPK Satu",
+      role: "ppk",
+      isActive: true,
     },
     {
-      id_users: "198808222015041003",
-      name_lengkap: "Eko SPI",
-      email: "eko@univ.ac.id",
-      password: "pass_spi",
-      jabatan: "Internal Auditor",
-      role: "SPI",
-    },
-    {
-      id_users: "199002142018012005",
-      name_lengkap: "Dina PPK",
-      email: "dina@univ.ac.id",
-      password: "pass_ppk",
-      jabatan: "Pejabat Komitmen",
-      role: "PPK",
-    },
-    {
-      id_users: "198203032005011004",
-      name_lengkap: "Roni Kabag",
-      email: "roni@univ.ac.id",
-      password: "pass_kabag",
-      jabatan: "Kepala Bagian",
-      role: "kabag",
+      users_id: "04",
+      email: "spi@univ.ac.id",
+      passwordHash: "pass123",
+      fullName: "SPI Satu",
+      role: "spi",
+      isActive: true,
     },
   ]);
 

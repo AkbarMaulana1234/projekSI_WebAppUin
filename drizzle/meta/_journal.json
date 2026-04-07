@@ -36,6 +36,20 @@
       "when": 1775295383494,
       "tag": "0004_absurd_rumiko_fujikawa",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1775496286655,
+      "tag": "0005_perfect_terrax",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1775579479208,
+      "tag": "0006_mature_micromax",
+      "breakpoints": true
     }
   ]
 }
