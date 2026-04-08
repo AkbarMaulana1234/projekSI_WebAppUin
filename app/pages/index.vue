@@ -7,7 +7,6 @@
 <script setup>
   definePageMeta({
     title: "Home",
-    middleware: "auth",
   });
   const handleLogout = async () => {
     const response = await $fetch("/api/registrasi/logout", {

@@ -14,4 +14,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     SecretJwtKey: process.env.SecretJwtKey,
   },
+  icon: {
+    mode: "css",
+    cssLayer: "base",
+  },
 });

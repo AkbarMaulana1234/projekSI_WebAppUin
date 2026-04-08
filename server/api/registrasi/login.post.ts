@@ -1,6 +1,7 @@
 import { useDrizzle } from "~~/server/db/index"; // Sesuaikan path utils Anda
 import { usersTable } from "~~/server/db/schema/usersSchema";
 import { eq, and } from "drizzle-orm";
+import { User } from "../../interface/userInterface";
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
   const { id_users, password, remember } = body;
@@ -26,8 +27,7 @@ export default defineEventHandler(async (event) => {
         message: "Password yang Anda masukkan salah.",
       };
     }
-
-    const payload = {
+    const payload: User = {
       id: user.id,
       role: user.role,
       username: user.fullName,
