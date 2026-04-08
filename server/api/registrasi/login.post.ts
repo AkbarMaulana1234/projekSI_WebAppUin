@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   console.log(body);
   try {
     const user = await useDrizzle().query.usersTable.findFirst({
-      where: eq(usersTable.id_users, id_users),
+      where: eq(usersTable.users_id, id_users),
     });
     if (!user) {
       throw createError({
@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
       });
     }
     console.log(user);
-    if (user.password !== password) {
+    if (user.passwordHash !== password) {
       return {
         success: false,
         message: "Password yang Anda masukkan salah.",
@@ -30,6 +30,10 @@ export default defineEventHandler(async (event) => {
     const payload = {
       id: user.id,
       role: user.role,
+      username: user.fullName,
+      fakultas: user.fakultasId || null,
+      ormawa: user.ormawaId || null,
+      prodi: user.prodiId || null,
     };
     const token = createJwt(payload);
 

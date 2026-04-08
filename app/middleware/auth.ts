@@ -1,7 +1,6 @@
 async function isAuthenticated(): Promise<boolean> {
   try {
     const headers = useRequestHeaders(["cookie"]);
-
     const response = await $fetch<{ valid: boolean }>("/api/auth/verify", {
       headers,
     });

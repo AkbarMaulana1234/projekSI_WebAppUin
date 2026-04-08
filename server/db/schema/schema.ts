@@ -14,6 +14,22 @@ import { lpgTable } from "../schema/lpgSchema";
 import { revisiLpgLogTable } from "../schema/revisiLpgLogSchema";
 import { auditLogTable } from "../schema/auditLogSchema";
 
+export {
+  fakultasTable,
+  programStudiTable,
+  ormawaTable,
+  usersTable,
+  pembayaranTable,
+  approvalLogTable,
+  kegiatanTable,
+  dokumentasiKegiatanTable,
+  tagihanPencairanTable,
+  pengajuanRabTable,
+  lpgTable,
+  revisiLpgLogTable,
+  auditLogTable,
+};
+
 // ============================================
 // FAKULTAS
 // ============================================
