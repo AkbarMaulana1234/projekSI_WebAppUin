@@ -21,6 +21,8 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   const roleAccess: Record<string, string[]> = {
     kaprodi: [`/dashboard/${role}`],
     ormawa: [`/dashboard/${role}`],
+    ppk: [`/dashboard/${role}`],
+    spi: [`/dashboard/${role}`],
   };
   const allowedPaths = roleAccess[role] || [defaultPath];
   const isAllowed = allowedPaths.some((prefix) => {
