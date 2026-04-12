@@ -121,13 +121,18 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+  import { reactive, ref } from "vue";
+
+  definePageMeta({
+    layout: false,
+  });
+
   const form = reactive({
     id_users: "",
     password: "",
     remember: false,
   });
-
   const pending = ref(false);
   const errorMsg = ref("");
 

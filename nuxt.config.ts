@@ -18,4 +18,9 @@ export default defineNuxtConfig({
     mode: "css",
     cssLayer: "base",
   },
+  app: {
+    head: {
+      title: "E administrasi Kampus Uin Mahmud Yunus Batusangkar",
+    },
+  },
 });

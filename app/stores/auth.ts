@@ -32,7 +32,6 @@ export const useAuthStore = defineStore("auth", () => {
       );
 
       user.value = response.user;
-      console.log(user.value);
     } catch (error) {
       user.value = null;
     }
@@ -40,7 +39,7 @@ export const useAuthStore = defineStore("auth", () => {
 
   // ACTIONS: Fungsi logout biar sekalian ngumpul di sini
   const logout = async () => {
-    await $fetch("/api/logout", { method: "POST" });
+    await $fetch("/api/registrasi/logout", { method: "POST" });
     user.value = null; // Hapus state lokal
     navigateTo("/registrasi/login"); // Lempar ke halaman login
   };

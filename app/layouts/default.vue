@@ -1,6 +1,13 @@
 <template>
-  <header><h1>ini adalah header</h1></header>
-  <slot> </slot>
+  <div class="flex flex-row w-full">
+    <header>
+      <h1>ini adalah header</h1>
+      <button @click="authStore.logout()">logout</button>
+    </header>
+    <div class="flex-1">
+      <slot class=""></slot>
+    </div>
+  </div>
   <footer
     class="bg-[#5C6BC0] text-white md:px-12 h-[58px] p-1 flex items-center justify-center"
   >
@@ -17,7 +24,6 @@
           <span>info@uinmybatusangkar.ac.id</span>
         </a>
       </div>
-
       <span>
         Copyright 2026 Universitas Islam Negeri Mahmud Yunus Batusangkar
       </span>
@@ -25,4 +31,7 @@
   </footer>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+  import { useAuthStore } from "../stores/auth";
+  const authStore = useAuthStore();
+</script>
