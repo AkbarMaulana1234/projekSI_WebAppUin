@@ -6,11 +6,11 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   if (!authStore.user) {
     await authStore.fetchUser();
   }
-  const publicPaths = [""];
-  if (publicPaths.includes(to.path)) {
-    return; // izinkan akses
-  }
+
   if (!authStore.user) {
+    if (from.path == "/registrasi/login" || to.path == "/registrasi/login") {
+      return;
+    }
     return navigateTo("/registrasi/login");
   }
   const { role } = authStore.user;
