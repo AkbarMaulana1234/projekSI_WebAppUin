@@ -181,7 +181,9 @@
       </div>
     </div>
   </header>
-  <slot></slot>
+  <div>
+    <slot />
+  </div>
   <footer class="bg-primary text-white">
     <!-- Bagian atas footer dengan beberapa kolom -->
     <div class="mx-auto max-w-7xl px-4 py-8 md:px-8">

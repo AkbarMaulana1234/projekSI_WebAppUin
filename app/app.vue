@@ -4,8 +4,12 @@
   </NuxtLayout>
 </template>
 <script setup>
+  import { Icon } from "@iconify/vue";
   definePageMeta({
-    middleware: "auth",
+    pageTransition: {
+      name: "page",
+      mode: "in-out",
+    },
   });
 </script>
 <style></style>

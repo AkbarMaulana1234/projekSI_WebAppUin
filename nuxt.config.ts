@@ -17,6 +17,11 @@ export default defineNuxtConfig({
   icon: {
     mode: "css",
     cssLayer: "base",
+    clientBundle: {
+      scan: true, // Deteksi otomatis semua ikon yang lo pakai
+      sizeLimitKb: 512, // (Opsional) Naikkan batas ukuran kalau perlu
+    },
+    serverBundle: "remote",
   },
   app: {
     head: {
