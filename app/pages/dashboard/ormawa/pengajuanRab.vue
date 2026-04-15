@@ -157,14 +157,14 @@
                   <div
                     class="w-10 h-10 rounded-lg bg-[#3b5988] flex items-center justify-center text-white font-bold"
                   >
-                    {{ ormawaData.nama?.charAt(0) || "O" }}
+                    {{ user.username.charAt(0) || "O" }}
                   </div>
                   <div>
                     <p class="font-semibold text-slate-900">
-                      {{ ormawaData.nama || "Loading..." }}
+                      {{ user.username || "Loading..." }}
                     </p>
                     <p class="text-xs text-slate-500">
-                      {{ ormawaData.email || "" }}
+                      {{ user.email || "" }}
                     </p>
                   </div>
                 </div>
@@ -361,9 +361,7 @@
                     class="flex justify-between items-center py-2 border-b border-white/10"
                   >
                     <span class="text-sm text-blue-100">Organisasi</span>
-                    <span class="font-medium">{{
-                      ormawaData.nama || "-"
-                    }}</span>
+                    <span class="font-medium">{{ user.username || "-" }}</span>
                   </div>
                   <div class="flex justify-between items-center py-2">
                     <span class="text-sm text-blue-100">Total Anggaran</span>
@@ -515,7 +513,73 @@
     </div>
 
     <!-- Success Modal -->
-    <TransitionRoot appear :show="showSuccessModal" as="template">
+    <Teleport to="body">
+      <Transition name="modal-fade" appear>
+        <div v-if="showSuccessModal" class="fixed inset-0 z-50 overflow-y-auto">
+          <!-- Backdrop -->
+          <div
+            class="fixed inset-0 bg-black/40 backdrop-blur-sm"
+            @click="showSuccessModal = false"
+          />
+
+          <!-- Modal Container -->
+          <div class="flex min-h-full items-center justify-center p-4">
+            <Transition name="modal-zoom" appear>
+              <div
+                v-if="showSuccessModal"
+                class="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-center p-8 shadow-xl"
+              >
+                <!-- Icon -->
+                <div
+                  class="w-20 h-20 mx-auto mb-6 rounded-full bg-emerald-100 flex items-center justify-center"
+                >
+                  <Icon
+                    name="heroicons:check-badge"
+                    class="w-10 h-10 text-emerald-600"
+                  />
+                </div>
+
+                <!-- Title -->
+                <h3 class="text-2xl font-bold text-slate-900 mb-2">
+                  Berhasil!
+                </h3>
+
+                <!-- Message -->
+                <p class="text-slate-600 mb-6">
+                  Pengajuan RAB
+                  <span class="font-mono font-medium text-[#3b5988]">{{
+                    submittedNomor
+                  }}</span>
+                  telah
+                  {{
+                    formData.status === "draft"
+                      ? "disimpan sebagai draft"
+                      : "diajukan"
+                  }}.
+                </p>
+
+                <!-- Buttons -->
+                <div class="space-y-3">
+                  <button
+                    @click="resetForm"
+                    class="w-full px-6 py-3 rounded-xl bg-[#3b5988] text-white font-medium hover:bg-[#2d4570] transition-all"
+                  >
+                    Buat Pengajuan Baru
+                  </button>
+                  <button
+                    @click="goToDashboard"
+                    class="w-full px-6 py-3 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-all"
+                  >
+                    Kembali ke Dashboard
+                  </button>
+                </div>
+              </div>
+            </Transition>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+    <!-- <TransitionRoot appear :show="showSuccessModal" as="template">
       <Dialog as="div" class="relative z-50">
         <TransitionChild
           enter="ease-out duration-300"
@@ -583,13 +647,15 @@
           </div>
         </div>
       </Dialog>
-    </TransitionRoot>
+    </TransitionRoot> -->
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
   import { ref, reactive, computed, onMounted } from "vue";
-
+  import { useAuthStore } from "~/stores/auth";
+  const authStore = useAuthStore();
+  const { user } = authStore;
   const steps = ["Informasi Dasar", "Upload Dokumen", "Review & Submit"];
   const currentStep = ref(1);
   const isDragging = ref(false);
@@ -616,17 +682,10 @@
     total_anggaran: "",
   });
 
-  // Mock data ormawa (nanti ambil dari auth store)
-  const ormawaData = reactive({
-    users_id: 1,
-    nama: "Himpunan Mahasiswa Teknik",
-    email: "hmt@kampus.ac.id",
-  });
-
   // Generate nomor pengajuan otomatis
   onMounted(() => {
     generateNomorPengajuan();
-    formData.users_id = ormawaData.users_id;
+    formData.users_id = user.id;
   });
 
   const generateNomorPengajuan = () => {
@@ -736,7 +795,6 @@
         errors.file_rab = "";
       }
     }
-
     if (currentStep.value === 3) {
       if (!formData.total_anggaran) {
         errors.total_anggaran = "Total anggaran wajib diisi";
@@ -748,10 +806,8 @@
         errors.total_anggaran = "";
       }
     }
-
     return isValid;
   };
-
   const nextStep = () => {
     if (validateStep()) {
       currentStep.value++;
@@ -765,25 +821,29 @@
   // Submit
   const submitForm = async () => {
     if (!validateStep()) return;
-
+    console.log(formData.file_rab);
     isSubmitting.value = true;
 
     // Simulasi API call
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Buat FormData, BUKAN object biasa
+      const formDataToSend = new FormData();
+      formDataToSend.append("nomor_pengajuan", formData.nomor_pengajuan);
+      formDataToSend.append("users_id", formData.users_id);
+      formDataToSend.append("judul_kegiatan", formData.judul_kegiatan);
+      formDataToSend.append("deskripsi", formData.deskripsi);
+      formDataToSend.append("total_anggaran", formData.total_anggaran);
+      formDataToSend.append("status", formData.status);
 
-      // Data yang akan dikirim ke backend (sesuai schema)
-      const payload = {
-        nomor_pengajuan: formData.nomor_pengajuan,
-        users_id: formData.users_id,
-        judul_kegiatan: formData.judul_kegiatan,
-        deskripsi: formData.deskripsi,
-        file_rab: formData.file_name, // Nanti upload file terpisah
-        total_anggaran: formData.total_anggaran,
-        status: formData.status,
-      };
+      if (formData.file_rab) {
+        formDataToSend.append("file_rab", formData.file_rab);
+      }
 
-      console.log("Submitting:", payload);
+      const response = await $fetch("/api/ormawa/PengajuanRab", {
+        method: "post",
+        body: formDataToSend,
+      });
+      console.log(response);
       submittedNomor.value = formData.nomor_pengajuan;
       showSuccessModal.value = true;
     } catch (error) {
@@ -811,7 +871,6 @@
   };
 
   const goToDashboard = () => {
-    // Navigate to dashboard
     navigateTo("/dashboard");
   };
 </script>

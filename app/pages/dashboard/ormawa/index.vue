@@ -18,7 +18,7 @@
             <div>
               <h2 class="text-xl font-bold text-slate-900">Dashboard</h2>
               <p class="text-sm text-slate-500">
-                Selamat datang kembali, Admin
+                Selamat datang kembali, {{ user?.username }}
               </p>
             </div>
           </div>
@@ -216,192 +216,14 @@
     </div>
 
     <!-- Detail Modal -->
-    <TransitionRoot appear :show="isModalOpen" as="template">
-      <Dialog as="div" @close="isModalOpen = false" class="relative z-50">
-        <TransitionChild
-          enter="ease-out duration-300"
-          enter-from="opacity-0"
-          enter-to="opacity-100"
-          leave="ease-in duration-200"
-          leave-from="opacity-100"
-          leave-to="opacity-0"
-        >
-          <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" />
-        </TransitionChild>
-
-        <div class="fixed inset-0 overflow-y-auto">
-          <div
-            class="flex min-h-full items-center justify-center p-4 text-center"
-          >
-            <TransitionChild
-              enter="ease-out duration-300"
-              enter-from="opacity-0 scale-95"
-              enter-to="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leave-from="opacity-100 scale-100"
-              leave-to="opacity-0 scale-95"
-            >
-              <DialogPanel
-                v-if="selectedRab"
-                class="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all"
-              >
-                <div
-                  class="relative bg-gradient-to-r from-[#3b5988] to-[#2d4570] px-6 py-6"
-                >
-                  <button
-                    @click="isModalOpen = false"
-                    class="absolute top-4 right-4 p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-                  >
-                    <Icon name="heroicons:x-mark" class="w-6 h-6" />
-                  </button>
-                  <div class="flex items-center gap-4">
-                    <div
-                      class="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center"
-                    >
-                      <Icon
-                        name="heroicons:document-text"
-                        class="w-8 h-8 text-white"
-                      />
-                    </div>
-                    <div>
-                      <DialogTitle
-                        as="h3"
-                        class="text-xl font-bold text-white"
-                        >{{ selectedRab.name }}</DialogTitle
-                      >
-                      <p class="text-blue-100 text-sm mt-1">
-                        {{ selectedRab.id }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="p-6 space-y-6">
-                  <div class="grid grid-cols-2 gap-4">
-                    <div
-                      class="p-4 rounded-xl bg-slate-50 border border-slate-100"
-                    >
-                      <p
-                        class="text-xs text-slate-500 uppercase tracking-wider mb-1"
-                      >
-                        Status
-                      </p>
-                      <span
-                        :class="[
-                          'inline-flex px-3 py-1 rounded-full text-sm font-medium',
-                          selectedRab.status === 'Selesai'
-                            ? 'bg-emerald-100 text-emerald-700'
-                            : selectedRab.status === 'Ditolak'
-                              ? 'bg-red-100 text-red-700'
-                              : selectedRab.status === 'Diproses'
-                                ? 'bg-amber-100 text-amber-700'
-                                : 'bg-blue-100 text-blue-700',
-                        ]"
-                      >
-                        {{ selectedRab.status }}
-                      </span>
-                    </div>
-                    <div
-                      class="p-4 rounded-xl bg-slate-50 border border-slate-100"
-                    >
-                      <p
-                        class="text-xs text-slate-500 uppercase tracking-wider mb-1"
-                      >
-                        Total Anggaran
-                      </p>
-                      <p class="text-lg font-bold text-slate-900">
-                        Rp {{ selectedRab.amount }}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div class="space-y-4">
-                    <div>
-                      <p
-                        class="text-xs text-slate-500 uppercase tracking-wider mb-2"
-                      >
-                        Detail Kegiatan
-                      </p>
-                      <div class="space-y-3">
-                        <div
-                          class="flex justify-between py-2 border-b border-slate-100"
-                        >
-                          <span class="text-sm text-slate-600">Departemen</span>
-                          <span class="text-sm font-medium text-slate-900">{{
-                            selectedRab.department
-                          }}</span>
-                        </div>
-                        <div
-                          class="flex justify-between py-2 border-b border-slate-100"
-                        >
-                          <span class="text-sm text-slate-600"
-                            >Tanggal Pengajuan</span
-                          >
-                          <span class="text-sm font-medium text-slate-900">{{
-                            selectedRab.date
-                          }}</span>
-                        </div>
-                        <div
-                          class="flex justify-between py-2 border-b border-slate-100"
-                        >
-                          <span class="text-sm text-slate-600"
-                            >Penanggung Jawab</span
-                          >
-                          <span class="text-sm font-medium text-slate-900">{{
-                            selectedRab.pic
-                          }}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div
-                      class="p-4 rounded-xl bg-[#d1a82a]/10 border border-[#d1a82a]/20"
-                    >
-                      <div class="flex items-start gap-3">
-                        <Icon
-                          name="heroicons:information-circle"
-                          class="w-5 h-5 text-[#d1a82a] mt-0.5"
-                        />
-                        <div>
-                          <p class="text-sm font-medium text-slate-900">
-                            Keterangan
-                          </p>
-                          <p class="text-sm text-slate-600 mt-1">
-                            {{
-                              selectedRab.notes ||
-                              "Tidak ada keterangan tambahan"
-                            }}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="flex gap-3 pt-4">
-                    <button
-                      class="flex-1 px-4 py-2.5 rounded-lg bg-[#3b5988] text-white font-medium hover:bg-[#2d4570] transition-colors"
-                    >
-                      Download PDF
-                    </button>
-                    <button
-                      class="flex-1 px-4 py-2.5 rounded-lg border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-colors"
-                    >
-                      Edit Pengajuan
-                    </button>
-                  </div>
-                </div>
-              </DialogPanel>
-            </TransitionChild>
-          </div>
-        </div>
-      </Dialog>
-    </TransitionRoot>
   </div>
 </template>
 
 <script setup lang="ts">
   import { ref } from "vue";
-
+  import { useAuthStore } from "~/stores/auth";
+  const authStore = useAuthStore();
+  const { user } = authStore;
   const nav = (path: string) => {
     return navigateTo(path);
   };
