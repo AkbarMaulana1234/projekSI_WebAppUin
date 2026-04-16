@@ -5,6 +5,7 @@ import { existsSync } from "node:fs";
 import { useDrizzle } from "../../db/index";
 import { pengajuanRabTable } from "../../db/schema/pengajuanRabSchema";
 import { log } from "node:console";
+import { createFilePath } from "~~/server/utils/CreateFilePath";
 
 export default defineEventHandler(async (event) => {
   try {
@@ -17,7 +18,6 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // Helper ambil nilai field teks dari Buffer
     const getField = (name: string): string => {
       const field = formData.find((f) => f.name === name);
       if (!field || !field.data) return "";
@@ -90,16 +90,14 @@ export default defineEventHandler(async (event) => {
     }
 
     // 5. Simpan file ke disk
-    const uploadDir = join(process.cwd(), "uploads");
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
+    const path = "Rab/sedangDiAjukan";
+    const newPath = await createFilePath("Rab", "sedangDiAjukan");
 
     // Sanitasi nama file
     const originalName = fileField.filename || "file_rab";
     const safeName = originalName.replace(/[^a-zA-Z0-9.\-]/g, "_");
     const uniqueFilename = `${Date.now()}_${safeName}`;
-    const filePath = join(uploadDir, uniqueFilename);
+    const filePath = join(newPath, uniqueFilename);
     await writeFile(filePath, fileField.data);
 
     // Path yang disimpan ke database (relatif dari root)
@@ -121,7 +119,6 @@ export default defineEventHandler(async (event) => {
         updated_at: new Date(),
       })
       .$returningId();
-    console.log(result);
     // 7. Return response sukses
     return {
       success: true,
