@@ -16,7 +16,6 @@
               </p>
             </div>
           </div>
-
           <div class="flex items-center gap-3">
             <button
               class="relative p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
@@ -57,10 +56,11 @@
                   class="flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full"
                 >
                   <Icon name="heroicons:arrow-trending-up" class="w-3 h-3" />
-                  +12%
                 </span>
               </div>
-              <h3 class="text-2xl font-bold text-slate-900 mb-1">24</h3>
+              <h3 class="text-2xl font-bold text-slate-900 mb-1">
+                {{ rabStore.summary?.total }}
+              </h3>
               <p class="text-sm text-slate-500">Total RAB Diajukan</p>
             </div>
           </div>
@@ -79,7 +79,9 @@
                 </div>
                 <span class="text-xs font-medium text-slate-400">Menunggu</span>
               </div>
-              <h3 class="text-2xl font-bold text-slate-900 mb-1">8</h3>
+              <h3 class="text-2xl font-bold text-slate-900 mb-1">
+                {{ rabStore.summary?.proses }}
+              </h3>
               <p class="text-sm text-slate-500">RAB Dalam Proses</p>
             </div>
           </div>
@@ -96,9 +98,11 @@
                 <div class="p-3 rounded-xl bg-red-500/10 text-red-600">
                   <Icon name="heroicons:x-circle" class="w-6 h-6" />
                 </div>
-                <span class="text-xs font-medium text-slate-400">Ditolak</span>
+                <span class="text-xs font-medium text-slate-400"> </span>
               </div>
-              <h3 class="text-2xl font-bold text-slate-900 mb-1">3</h3>
+              <h3 class="text-2xl font-bold text-slate-900 mb-1">
+                {{ rabStore.summary?.ditolak }}
+              </h3>
               <p class="text-sm text-slate-500">RAB Ditolak</p>
             </div>
           </div>
@@ -119,10 +123,11 @@
                   class="flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full"
                 >
                   <Icon name="heroicons:arrow-trending-up" class="w-3 h-3" />
-                  +5%
                 </span>
               </div>
-              <h3 class="text-2xl font-bold text-slate-900 mb-1">13</h3>
+              <h3 class="text-2xl font-bold text-slate-900 mb-1">
+                {{ rabStore.summary?.selesai }}
+              </h3>
               <p class="text-sm text-slate-500">RAB Selesai</p>
             </div>
           </div>
@@ -214,13 +219,18 @@
 </template>
 
 <script setup lang="ts">
-  import { ref } from "vue";
+  import { ref, onMounted } from "vue";
   import { useAuthStore } from "~/stores/auth";
+  import { useRabStore } from "~/stores/RabStore/RabCount";
   const authStore = useAuthStore();
+  const rabStore = useRabStore();
   const { user } = authStore;
   const nav = (path: string) => {
     return navigateTo(path);
   };
+  onMounted(async () => {
+    await rabStore.fetchRabSummary();
+  });
 </script>
 
 <style>

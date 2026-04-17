@@ -18,3 +18,11 @@ export function verifyJwt(token: string) {
     return null;
   }
 }
+export function decodeJwt(token: string) {
+  const runtimeConfig = useRuntimeConfig();
+  try {
+    return jwt.decode(token, runtimeConfig.SecretJwtKey);
+  } catch (err) {
+    return null;
+  }
+}

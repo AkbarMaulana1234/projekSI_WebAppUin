@@ -33,6 +33,7 @@ export const pengajuanRabTable = mysqlTable("pengajuan_rab", {
     "waiting_spi",
     "ditolak_spi",
     "disetujui",
+    "selesai_spi",
   ]).default("draft"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

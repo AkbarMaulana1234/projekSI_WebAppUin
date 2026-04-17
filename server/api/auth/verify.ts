@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
     });
   }
   const check = await useDrizzle().query.usersTable.findFirst({
-    where: eq(usersTable.id, decoded.id),
+    where: eq(usersTable.id, Number(decoded.id)),
   });
   if (!check) {
     throw createError({
@@ -39,7 +39,6 @@ export default defineEventHandler(async (event) => {
       },
     });
   }
-
   return {
     valid: true,
     message: "Token is valid",
