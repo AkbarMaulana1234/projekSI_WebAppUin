@@ -1,0 +1,1 @@
+ALTER TABLE `kegiatan` MODIFY COLUMN `pengajuan_rab_id` int NOT NULL;

@@ -9,12 +9,6 @@
       >
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
-            <button
-              @click="isSidebarOpen = !isSidebarOpen"
-              class="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
-            >
-              <Icon name="heroicons:bars-3" class="w-6 h-6" />
-            </button>
             <div>
               <h2 class="text-xl font-bold text-slate-900">Dashboard</h2>
               <p class="text-sm text-slate-500">

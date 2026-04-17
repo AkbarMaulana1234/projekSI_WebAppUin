@@ -579,75 +579,6 @@
         </div>
       </Transition>
     </Teleport>
-    <!-- <TransitionRoot appear :show="showSuccessModal" as="template">
-      <Dialog as="div" class="relative z-50">
-        <TransitionChild
-          enter="ease-out duration-300"
-          enter-from="opacity-0"
-          enter-to="opacity-100"
-          leave="ease-in duration-200"
-          leave-from="opacity-100"
-          leave-to="opacity-0"
-        >
-          <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" />
-        </TransitionChild>
-
-        <div class="fixed inset-0 overflow-y-auto">
-          <div class="flex min-h-full items-center justify-center p-4">
-            <TransitionChild
-              enter="ease-out duration-300"
-              enter-from="opacity-0 scale-95"
-              enter-to="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leave-from="opacity-100 scale-100"
-              leave-to="opacity-0 scale-95"
-            >
-              <DialogPanel
-                class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-center p-8 shadow-xl"
-              >
-                <div
-                  class="w-20 h-20 mx-auto mb-6 rounded-full bg-emerald-100 flex items-center justify-center"
-                >
-                  <Icon
-                    name="heroicons:check-badge"
-                    class="w-10 h-10 text-emerald-600"
-                  />
-                </div>
-                <h3 class="text-2xl font-bold text-slate-900 mb-2">
-                  Berhasil!
-                </h3>
-                <p class="text-slate-600 mb-6">
-                  Pengajuan RAB
-                  <span class="font-mono font-medium text-[#3b5988]">{{
-                    submittedNomor
-                  }}</span>
-                  telah
-                  {{
-                    formData.status === "draft"
-                      ? "disimpan sebagai draft"
-                      : "diajukan"
-                  }}.
-                </p>
-                <div class="space-y-3">
-                  <button
-                    @click="resetForm"
-                    class="w-full px-6 py-3 rounded-xl bg-[#3b5988] text-white font-medium hover:bg-[#2d4570] transition-all"
-                  >
-                    Buat Pengajuan Baru
-                  </button>
-                  <button
-                    @click="goToDashboard"
-                    class="w-full px-6 py-3 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-all"
-                  >
-                    Kembali ke Dashboard
-                  </button>
-                </div>
-              </DialogPanel>
-            </TransitionChild>
-          </div>
-        </div>
-      </Dialog>
-    </TransitionRoot> -->
   </div>
 </template>
 
@@ -828,18 +759,18 @@
     try {
       // Buat FormData, BUKAN object biasa
       const formDataToSend = new FormData();
-      formDataToSend.append("nomor_pengajuan", formData.nomor_pengajuan);
-      formDataToSend.append("users_id", formData.users_id);
-      formDataToSend.append("judul_kegiatan", formData.judul_kegiatan);
+      formDataToSend.append("nomorPengajuan", formData.nomor_pengajuan);
+      formDataToSend.append("usersId", formData.users_id);
+      formDataToSend.append("judulKegiatan", formData.judul_kegiatan);
       formDataToSend.append("deskripsi", formData.deskripsi);
-      formDataToSend.append("total_anggaran", formData.total_anggaran);
+      formDataToSend.append("totalAnggaran", formData.total_anggaran);
       formDataToSend.append("status", formData.status);
 
       if (formData.file_rab) {
         formDataToSend.append("file_rab", formData.file_rab);
       }
 
-      const response = await $fetch("/api/ormawa/PengajuanRab", {
+      const response = await $fetch("/api/ormawa/Rab/PengajuanRab", {
         method: "post",
         body: formDataToSend,
       });
@@ -858,7 +789,7 @@
     currentStep.value = 1;
     Object.assign(formData, {
       nomor_pengajuan: "",
-      users_id: ormawaData.users_id,
+      users_id: null,
       judul_kegiatan: "",
       deskripsi: "",
       file_rab: null,
