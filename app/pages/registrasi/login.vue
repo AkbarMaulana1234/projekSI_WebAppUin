@@ -123,7 +123,6 @@
 
 <script setup lang="ts">
   import { reactive, ref } from "vue";
-  import { useAuthStore } from "~/stores/auth";
 
   definePageMeta({
     layout: false,
@@ -142,7 +141,6 @@
     errorMsg.value = "";
 
     try {
-      const authStore = useAuthStore();
       const response = await $fetch("/api/registrasi/login", {
         method: "POST",
         body: {
@@ -152,17 +150,7 @@
         },
       });
       if (response.success) {
-        // Fetch user data setelah login berhasil
-        await authStore.fetchUser();
-        
-        // Redirect ke dashboard berdasarkan role
-        const role = authStore.user?.role;
-        console.log("User role:", role);
-        if (role) {
-          await navigateTo(`/dashboard/${role}`);
-        } else {
-          await navigateTo("/");
-        }
+        navigateTo("/");
       }
     } catch (err) {
       console.error("Login Gagal:", err);

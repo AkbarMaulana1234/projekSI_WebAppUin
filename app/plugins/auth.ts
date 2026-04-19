@@ -1,10 +1,9 @@
 import { useAuthStore } from "~/stores/auth";
-
 export default defineNuxtPlugin(async (nuxtApp) => {
   const authStore = useAuthStore();
 
-  // Hanya fetch user di client-side, bukan di SSR
-  if (process.client && !authStore.user) {
+  // Kalau halamannya direfresh dan state user kosong, suruh Pinia ambil datanya
+  if (!authStore.user) {
     await authStore.fetchUser();
   }
 });

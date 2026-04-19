@@ -1,17 +1,17 @@
 import jwt from "jsonwebtoken";
 
-const SECRET_KEY = process.env.SecretJwtKey || "your-secret-key-fallback";
-
 export function createJwt(payload: object): string {
-  return jwt.sign(payload, SECRET_KEY, {
+  const runtimeConfig = useRuntimeConfig(); // Pindahkan ke dalam fungsi agar aman
+  return jwt.sign(payload, runtimeConfig.SecretJwtKey, {
     algorithm: "HS256",
     expiresIn: "1d",
   });
 }
 
 export function verifyJwt(token: string) {
+  const runtimeConfig = useRuntimeConfig();
   try {
-    return jwt.verify(token, SECRET_KEY, {
+    return jwt.verify(token, runtimeConfig.SecretJwtKey, {
       algorithms: ["HS256"],
     });
   } catch (error) {
