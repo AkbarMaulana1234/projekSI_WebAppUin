@@ -7,7 +7,8 @@ export type Status =
   | "DiTolak"
   | "Selesai"
   | "SedangBerlangsung"
-  | "sedangDiAjukan";
+  | "sedangDiAjukan"
+  | "draft";
 
 const rootPath = join(cwd(), "uploads");
 export async function createFilePath(

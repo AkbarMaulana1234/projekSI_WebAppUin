@@ -21,7 +21,7 @@ export function verifyJwt(token: string) {
 export function decodeJwt(token: string) {
   const runtimeConfig = useRuntimeConfig();
   try {
-    return jwt.decode(token, runtimeConfig.SecretJwtKey);
+    return jwt.decode(token);
   } catch (err) {
     return null;
   }

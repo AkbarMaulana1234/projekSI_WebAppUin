@@ -160,7 +160,7 @@
                 />
               </button>
 
-              <button
+              <!-- <button
                 class="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-slate-300 text-slate-600 hover:border-[#d1a82a] hover:text-[#d1a82a] hover:bg-[#d1a82a]/5 transition-all group"
               >
                 <div
@@ -172,7 +172,7 @@
                   <p class="font-semibold">Lihat Arsip</p>
                   <p class="text-xs text-slate-400">Akses dokumen lama</p>
                 </div>
-              </button>
+              </button> -->
             </div>
 
             <!-- Mini Calendar -->
@@ -206,11 +206,10 @@
               </div>
             </div>
           </div>
-
           <!-- Statistics Chart -->
         </div>
         <!-- RAB List -->
-        <table-component></table-component>
+        <ormawa-table-component></ormawa-table-component>
       </main>
     </div>
 
@@ -221,7 +220,7 @@
 <script setup lang="ts">
   import { ref, onMounted } from "vue";
   import { useAuthStore } from "~/stores/auth";
-  import { useRabStore } from "~/stores/RabStore/RabCount";
+  import { useRabStore } from "~/stores/ormawa/RabCount";
   const authStore = useAuthStore();
   const rabStore = useRabStore();
   const { user } = authStore;

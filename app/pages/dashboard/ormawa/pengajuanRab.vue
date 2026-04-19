@@ -413,10 +413,10 @@
 
                   <button
                     type="button"
-                    @click="formData.status = 'diajukan'"
+                    @click="formData.status = 'waiting_kaprodi'"
                     :class="[
                       'p-4 rounded-xl border-2 text-left transition-all',
-                      formData.status === 'diajukan'
+                      formData.status === 'waiting_kaprodi'
                         ? 'border-emerald-500 bg-emerald-50'
                         : 'border-slate-200 hover:border-slate-300',
                     ]"
@@ -425,13 +425,13 @@
                       <div
                         :class="[
                           'w-4 h-4 rounded-full border-2 flex items-center justify-center',
-                          formData.status === 'diajukan'
+                          formData.status === 'waiting_kaprodi'
                             ? 'border-emerald-500'
                             : 'border-slate-300',
                         ]"
                       >
                         <div
-                          v-if="formData.status === 'diajukan'"
+                          v-if="formData.status === 'waiting_kaprodi'"
                           class="w-2 h-2 rounded-full bg-emerald-500"
                         ></div>
                       </div>
@@ -587,6 +587,7 @@
   import { useAuthStore } from "~/stores/auth";
   const authStore = useAuthStore();
   const { user } = authStore;
+  console.log(user);
   const steps = ["Informasi Dasar", "Upload Dokumen", "Review & Submit"];
   const currentStep = ref(1);
   const isDragging = ref(false);
@@ -616,7 +617,7 @@
   // Generate nomor pengajuan otomatis
   onMounted(() => {
     generateNomorPengajuan();
-    formData.users_id = user.id;
+    formData.users_id = user?.id;
   });
 
   const generateNomorPengajuan = () => {
@@ -754,7 +755,7 @@
     if (!validateStep()) return;
     console.log(formData.file_rab);
     isSubmitting.value = true;
-
+    console.log(formData);
     // Simulasi API call
     try {
       // Buat FormData, BUKAN object biasa
@@ -789,7 +790,7 @@
     currentStep.value = 1;
     Object.assign(formData, {
       nomor_pengajuan: "",
-      users_id: null,
+      users_id: user?.id,
       judul_kegiatan: "",
       deskripsi: "",
       file_rab: null,
@@ -802,7 +803,7 @@
   };
 
   const goToDashboard = () => {
-    navigateTo("/dashboard");
+    navigateTo("/dashboard/ormawa");
   };
 </script>
 

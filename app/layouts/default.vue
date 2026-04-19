@@ -19,7 +19,7 @@
         </NuxtLink>
         <template v-if="authStore.user?.role === 'ormawa'">
           <NuxtLink
-            to="/ormawa/pengajuan"
+            to="ormawa/pengajuanRab"
             class="text-gray-700 hover:text-primary font-medium transition"
           >
             Pengajuan RAB
@@ -125,7 +125,7 @@
         </NuxtLink>
         <template v-if="authStore.user?.role === 'ormawa'">
           <NuxtLink
-            to="/ormawa/pengajuan"
+            to="/ormawa/pengajuanRab"
             class="block py-2 text-gray-700 hover:text-primary font-medium"
             @click="mobileMenuOpen = false"
           >

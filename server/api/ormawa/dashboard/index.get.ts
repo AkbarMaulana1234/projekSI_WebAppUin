@@ -1,18 +1,25 @@
-import { eq, notInArray, and, sql } from "drizzle-orm";
+import { eq, notInArray, and, sql, ne } from "drizzle-orm";
 import { pengajuanRabTable } from "~~/server/db/schema";
 import { useDrizzle } from "~~/server/db";
 import { decodeJwt } from "~~/server/utils/authentikasi";
 import { User } from "~~/server/interface/userInterface";
+import { nextTick } from "vue";
 export default defineEventHandler(async (event) => {
   try {
     const db = useDrizzle();
-    const token: string = getCookie(event, "jwt_token") ?? "";
-    const user = decodeJwt(token) as User;
+
+    const user = event.context.user;
+
     const [totalRab, RabTolak, RabSelesai, RabProses] = await Promise.all([
       db
         .select({ count: sql<number>`count(*)` })
         .from(pengajuanRabTable)
-        .where(eq(pengajuanRabTable.usersId, user.id)),
+        .where(
+          and(
+            eq(pengajuanRabTable.usersId, user.id),
+            ne(pengajuanRabTable.status, "draft"),
+          ),
+        ),
       db
         .select({ count: sql<number>`count(*)` })
         .from(pengajuanRabTable)
@@ -40,6 +47,7 @@ export default defineEventHandler(async (event) => {
               "disetujui",
               "draft",
               "selesai_spi",
+              "ditolak_spi",
             ]),
             eq(pengajuanRabTable.usersId, user.id),
           ),
