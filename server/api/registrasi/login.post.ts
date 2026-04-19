@@ -1,5 +1,5 @@
-import { useDrizzle } from "~~/server/db/index"; // Sesuaikan path utils Anda
-import { usersTable } from "~~/server/db/schema/usersSchema";
+import { useDrizzle } from "../../db/index"; // Sesuaikan path utils Anda
+import { usersTable } from "../../db/schema/usersSchema";
 import { eq, and } from "drizzle-orm";
 import { User } from "../../interface/userInterface";
 export default defineEventHandler(async (event) => {

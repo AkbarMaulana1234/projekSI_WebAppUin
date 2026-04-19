@@ -6,9 +6,9 @@ export const pengajuanRabTable = mysqlTable("pengajuanRab_table", (t) => ({
   id: t.int("id").autoincrement().primaryKey(),
   nomor_pengajuan: t.varchar("nomor_pengajuan", { length: 100 }).notNull(),
   users_id: t
-    .int("ormawa")
+    .bigint("users_id", { mode: "number" })
     .notNull()
-    .references(() => usersTable.users_id, { onDelete: "set null" }),
+    .references(() => usersTable.id, { onDelete: "set null" }),
   judul_kegiatan: t.varchar("judul_kegiatan", { length: 500 }).notNull(),
   deskripsi: t.text("deskripsi"),
   file_rab: t.text("file_rab").notNull(),

@@ -22,17 +22,12 @@ export const useAuthStore = defineStore("auth", () => {
   };
   const fetchUser = async () => {
     try {
-      const $fetch = useRequestFetch();
-      const headers = useRequestHeaders(["cookie"]);
       const response = await $fetch<{ valid: boolean; user: User }>(
         "/api/auth/verify",
-        {
-          headers,
-        },
       );
-
       user.value = response.user;
     } catch (error) {
+      console.error("fetchUser error:", error);
       user.value = null;
     }
   };
