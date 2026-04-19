@@ -1,58 +1,49 @@
 <template>
-  <header class="bg-white shadow-md sticky top-0 z-50">
+  <!-- Header pakai style inline agar gradient tidak di-override Tailwind -->
+  <header
+    style="background: linear-gradient(135deg, #0f1f3d 0%, #1e3a6e 60%, #2d4f8e 100%); box-shadow: 0 2px 16px rgba(15,31,61,.35); border-bottom: 2px solid rgba(201,162,39,0.35); position: sticky; top: 0; z-index: 50;"
+  >
     <nav class="mx-auto flex items-center justify-between px-4 py-3 md:px-8">
       <!-- Logo dan Nama -->
       <div class="flex items-center space-x-2">
         <img src="~~/assets/images/logouin.png" alt="" height="32" width="32" />
-        <span class="text-lg font-bold text-gray-800 hidden sm:inline">
+        <span class="text-lg font-bold hidden sm:inline" style="color:#fff;">
           UIN Mahmud Yunus
         </span>
       </div>
 
       <!-- Desktop Menu -->
-      <div class="hidden md:flex items-center space-x-6">
+      <div class="hidden md:flex items-center space-x-1">
         <NuxtLink
           to="/dashboard"
-          class="text-gray-700 hover:text-primary font-medium transition"
+          class="nav-link"
         >
           Dashboard
         </NuxtLink>
         <template v-if="authStore.user?.role === 'ormawa'">
-          <NuxtLink
-            to="/ormawa/pengajuan"
-            class="text-gray-700 hover:text-primary font-medium transition"
-          >
+          <NuxtLink to="/ormawa/pengajuan" class="nav-link">
             Pengajuan RAB
           </NuxtLink>
-          <NuxtLink
-            to="/ormawa/kegiatan"
-            class="text-gray-700 hover:text-primary font-medium transition"
-          >
+          <NuxtLink to="/ormawa/kegiatan" class="nav-link">
             Kegiatan Saya
           </NuxtLink>
         </template>
         <template v-if="authStore.user?.role === 'kaprodi'">
-          <NuxtLink
-            to="/kaprodi/verifikasi"
-            class="text-gray-700 hover:text-primary font-medium transition"
-          >
+          <NuxtLink to="/kaprodi/verifikasi" class="nav-link">
             Verifikasi RAB
           </NuxtLink>
         </template>
         <template v-if="authStore.user?.role === 'ppk'">
-          <NuxtLink
-            to="/ppk/verifikasi"
-            class="text-gray-700 hover:text-primary font-medium transition"
-          >
-            Verifikasi Tagihan
+          <NuxtLink to="/ppk/pengajuan" class="nav-link">
+            Pengajuan
+          </NuxtLink>
+          <NuxtLink to="/ppk/pencairan" class="nav-link">
+            Pencairan
           </NuxtLink>
         </template>
         <template v-if="authStore.user?.role === 'spi'">
-          <NuxtLink
-            to="/spi/verifikasi"
-            class="text-gray-700 hover:text-primary font-medium transition"
-          >
-            Verifikasi LPG
+          <NuxtLink to="/spi/verifikasi" class="nav-link">
+            Verifikasi LPJ
           </NuxtLink>
         </template>
       </div>
@@ -65,29 +56,32 @@
             class="flex items-center space-x-2 focus:outline-none"
           >
             <div
-              class="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold"
+              style="height:34px;width:34px;border-radius:9px;background:rgba(201,162,39,0.2);border:1.5px solid rgba(201,162,39,0.5);display:flex;align-items:center;justify-content:center;color:#e4c96a;font-weight:700;font-size:13px;"
             >
               {{ authStore.user?.username?.charAt(0).toUpperCase() || "U" }}
             </div>
-            <span class="text-gray-700 font-medium">{{
-              authStore.user?.username
-            }}</span>
-            <Icon name="heroicons:chevron-down" class="h-4 w-4 text-gray-500" />
+            <span style="color:rgba(255,255,255,0.9);font-weight:500;font-size:14px;">
+              {{ authStore.user?.username }}
+            </span>
+            <Icon name="heroicons:chevron-down" class="h-4 w-4" style="color:rgba(255,255,255,0.5);" />
           </button>
           <div
             v-if="dropdownOpen"
-            class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-10 border"
+            style="position:absolute;right:0;margin-top:8px;width:192px;background:#fff;border-radius:12px;box-shadow:0 12px 36px rgba(15,31,61,.18);border:1px solid #e2eaf6;overflow:hidden;z-index:10;"
           >
-            <div class="px-4 py-2 border-b text-sm text-gray-700">
-              <p class="font-semibold">{{ authStore.user?.username }}</p>
-              <p class="text-xs text-gray-500 capitalize">
+            <div style="padding:12px 16px;border-bottom:1px solid #f0f4fb;">
+              <p style="font-size:13px;font-weight:600;color:#1a2f5a;">{{ authStore.user?.username }}</p>
+              <p style="font-size:11px;color:#7c93b4;margin-top:2px;text-transform:capitalize;">
                 {{ authStore.user?.role }}
               </p>
             </div>
             <button
               @click="handleLogout"
-              class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+              style="width:100%;text-align:left;padding:10px 16px;font-size:13px;color:#dc2626;background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:8px;"
+              onmouseover="this.style.background='#fff5f5'"
+              onmouseout="this.style.background='none'"
             >
+              <Icon name="heroicons:arrow-right-on-rectangle" class="h-4 w-4" />
               Logout
             </button>
           </div>
@@ -98,13 +92,10 @@
       <div class="md:hidden">
         <button
           @click="mobileMenuOpen = !mobileMenuOpen"
-          class="text-gray-700 focus:outline-none"
+          class="focus:outline-none"
+          style="color:#fff;"
         >
-          <Icon
-            v-if="!mobileMenuOpen"
-            name="heroicons:bars-3"
-            class="h-6 w-6"
-          />
+          <Icon v-if="!mobileMenuOpen" name="heroicons:bars-3" class="h-6 w-6" />
           <Icon v-else name="heroicons:x-mark" class="h-6 w-6" />
         </button>
       </div>
@@ -113,67 +104,47 @@
     <!-- Mobile Menu Panel -->
     <div
       v-if="mobileMenuOpen"
-      class="md:hidden bg-white border-t px-4 pb-3 pt-2 shadow-lg"
+      style="background:rgba(10,20,50,0.6);backdrop-filter:blur(8px);border-top:1px solid rgba(255,255,255,0.1);padding:8px 16px 12px;"
+      class="md:hidden"
     >
-      <div class="space-y-2">
-        <NuxtLink
-          to="/dashboard"
-          class="block py-2 text-gray-700 hover:text-primary font-medium"
-          @click="mobileMenuOpen = false"
-        >
+      <div class="space-y-1">
+        <NuxtLink to="/dashboard" class="mobile-nav-link" @click="mobileMenuOpen = false">
           Dashboard
         </NuxtLink>
         <template v-if="authStore.user?.role === 'ormawa'">
-          <NuxtLink
-            to="/ormawa/pengajuan"
-            class="block py-2 text-gray-700 hover:text-primary font-medium"
-            @click="mobileMenuOpen = false"
-          >
+          <NuxtLink to="/ormawa/pengajuan" class="mobile-nav-link" @click="mobileMenuOpen = false">
             Pengajuan RAB
           </NuxtLink>
-          <NuxtLink
-            to="/ormawa/kegiatan"
-            class="block py-2 text-gray-700 hover:text-primary font-medium"
-            @click="mobileMenuOpen = false"
-          >
+          <NuxtLink to="/ormawa/kegiatan" class="mobile-nav-link" @click="mobileMenuOpen = false">
             Kegiatan Saya
           </NuxtLink>
         </template>
         <template v-if="authStore.user?.role === 'kaprodi'">
-          <NuxtLink
-            to="/kaprodi/verifikasi"
-            class="block py-2 text-gray-700 hover:text-primary font-medium"
-            @click="mobileMenuOpen = false"
-          >
+          <NuxtLink to="/kaprodi/verifikasi" class="mobile-nav-link" @click="mobileMenuOpen = false">
             Verifikasi RAB
           </NuxtLink>
         </template>
         <template v-if="authStore.user?.role === 'ppk'">
-          <NuxtLink
-            to="/ppk/verifikasi"
-            class="block py-2 text-gray-700 hover:text-primary font-medium"
-            @click="mobileMenuOpen = false"
-          >
-            Verifikasi Tagihan
+          <NuxtLink to="/ppk/pengajuan" class="mobile-nav-link" @click="mobileMenuOpen = false">
+            Pengajuan
+          </NuxtLink>
+          <NuxtLink to="/ppk/pencairan" class="mobile-nav-link" @click="mobileMenuOpen = false">
+            Pencairan
           </NuxtLink>
         </template>
         <template v-if="authStore.user?.role === 'spi'">
-          <NuxtLink
-            to="/spi/verifikasi"
-            class="block py-2 text-gray-700 hover:text-primary font-medium"
-            @click="mobileMenuOpen = false"
-          >
-            Verifikasi LPG
+          <NuxtLink to="/spi/verifikasi" class="mobile-nav-link" @click="mobileMenuOpen = false">
+            Verifikasi LPJ
           </NuxtLink>
         </template>
-        <hr class="my-2" />
-        <div class="pt-2">
-          <p class="text-sm text-gray-500">
+        <hr style="margin:8px 0;border-color:rgba(255,255,255,0.1);" />
+        <div style="padding-top:8px;">
+          <p style="font-size:13px;color:rgba(255,255,255,0.5);">
             {{ authStore.user?.username }} ({{ authStore.user?.role }})
           </p>
           <button
             @click="handleLogout"
-            class="mt-2 w-full rounded-md bg-red-50 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-100"
+            style="margin-top:8px;width:100%;border-radius:8px;background:rgba(255,255,255,0.1);padding:8px 12px;font-size:13px;font-weight:500;color:#fff;border:none;cursor:pointer;"
           >
             Logout
           </button>
@@ -181,9 +152,11 @@
       </div>
     </div>
   </header>
+
   <div>
     <slot />
   </div>
+
   <footer class="bg-primary text-white">
     <!-- Bagian atas footer dengan beberapa kolom -->
     <div class="mx-auto max-w-7xl px-4 py-8 md:px-8">
@@ -230,32 +203,20 @@
           </ul>
         </div>
 
-        <!-- Kolom Sosial Media (opsional) -->
+        <!-- Kolom Sosial Media -->
         <div>
           <h3 class="mb-3 text-lg font-semibold text-secondary">Ikuti Kami</h3>
           <div class="flex space-x-4">
-            <a
-              href="#"
-              class="rounded-full bg-white/10 p-2 transition hover:bg-secondary"
-            >
+            <a href="#" class="rounded-full bg-white/10 p-2 transition hover:bg-secondary">
               <Icon name="mdi:facebook" class="h-5 w-5" />
             </a>
-            <a
-              href="#"
-              class="rounded-full bg-white/10 p-2 transition hover:bg-secondary"
-            >
+            <a href="#" class="rounded-full bg-white/10 p-2 transition hover:bg-secondary">
               <Icon name="mdi:instagram" class="h-5 w-5" />
             </a>
-            <a
-              href="#"
-              class="rounded-full bg-white/10 p-2 transition hover:bg-secondary"
-            >
+            <a href="#" class="rounded-full bg-white/10 p-2 transition hover:bg-secondary">
               <Icon name="mdi:youtube" class="h-5 w-5" />
             </a>
-            <a
-              href="#"
-              class="rounded-full bg-white/10 p-2 transition hover:bg-secondary"
-            >
+            <a href="#" class="rounded-full bg-white/10 p-2 transition hover:bg-secondary">
               <Icon name="mdi:twitter" class="h-5 w-5" />
             </a>
           </div>
@@ -264,9 +225,7 @@
     </div>
 
     <!-- Bagian copyright -->
-    <div
-      class="border-t border-white/20 py-4 text-center text-xs text-white/70"
-    >
+    <div class="border-t border-white/20 py-4 text-center text-xs text-white/70">
       <p>
         &copy; {{ new Date().getFullYear() }} Universitas Islam Negeri Mahmud
         Yunus Batusangkar.
@@ -327,5 +286,46 @@
   }
   .border-primary {
     border-color: #3b5988;
+  }
+
+  /* Nav links desktop */
+  .nav-link {
+    color: rgba(255, 255, 255, 0.72);
+    font-weight: 500;
+    font-size: 14px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+  }
+  .nav-link:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  /* NuxtLink active state */
+  .nav-link.router-link-active {
+    color: #e4c96a;
+    background: rgba(201, 162, 39, 0.15);
+    font-weight: 600;
+  }
+
+  /* Mobile nav links */
+  .mobile-nav-link {
+    display: block;
+    padding: 9px 12px;
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+    font-size: 14px;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+  }
+  .mobile-nav-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+  .mobile-nav-link.router-link-active {
+    color: #e4c96a;
+    background: rgba(201, 162, 39, 0.12);
   }
 </style>
