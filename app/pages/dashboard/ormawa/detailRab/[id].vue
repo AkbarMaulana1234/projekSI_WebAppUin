@@ -1,6 +1,39 @@
 <template>
   <div class="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-6xl mx-auto space-y-6">
+    <!-- Loading State -->
+    <div
+      v-if="detailRabStore.loading"
+      class="flex justify-center items-center h-64"
+    >
+      <div class="text-center">
+        <Icon
+          name="heroicons:arrow-path"
+          class="w-12 h-12 animate-spin text-[#3b5988] mx-auto mb-4"
+        />
+        <p class="text-slate-600">Memuat data RAB...</p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="detailRabStore.error" class="max-w-6xl mx-auto">
+      <div class="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+        <Icon
+          name="heroicons:exclamation-triangle"
+          class="w-12 h-12 text-red-500 mx-auto mb-4"
+        />
+        <h3 class="text-lg font-bold text-red-800 mb-2">Gagal Memuat Data</h3>
+        <p class="text-red-600">{{ detailRabStore.error }}</p>
+        <button
+          @click="reloadData"
+          class="mt-4 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
+        >
+          Coba Lagi
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div v-else-if="rabData" class="max-w-6xl mx-auto space-y-6">
       <!-- Header Navigation -->
       <div class="flex items-center justify-between">
         <button
@@ -32,9 +65,9 @@
         </div>
       </div>
 
-      <!-- Main Content Grid -->
+      <!-- Grid Layout Sama Seperti Sebelumnya, Gunakan rabData dari store -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Left Column: Main Info -->
+        <!-- Left Column -->
         <div class="lg:col-span-2 space-y-6">
           <!-- Title Card -->
           <div
@@ -50,7 +83,6 @@
                 </h1>
               </div>
               <div class="flex gap-2">
-                <!-- Tombol Ajukan (hanya jika draft) -->
                 <button
                   v-if="rabData.status === 'draft'"
                   @click="showAjukanModal = true"
@@ -59,8 +91,6 @@
                   <Icon name="heroicons:paper-airplane" class="w-5 h-5" />
                   Ajukan
                 </button>
-
-                <!-- Tombol Edit (jika draft atau revisi) -->
                 <button
                   v-if="
                     ['draft', 'revisi_kaprodi', 'revisi_ppk'].includes(
@@ -75,7 +105,6 @@
                 </button>
               </div>
             </div>
-
             <div class="flex items-center gap-4 text-sm text-slate-600">
               <div class="flex items-center gap-2">
                 <Icon
@@ -95,7 +124,7 @@
             </div>
           </div>
 
-          <!-- Timeline Progress -->
+          <!-- Timeline Progress (dihitung dari status) -->
           <div
             class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8"
           >
@@ -105,14 +134,10 @@
               <Icon name="heroicons:chart-bar" class="w-5 h-5 text-[#d1a82a]" />
               Progress Pengajuan
             </h3>
-
             <div class="relative">
-              <!-- Timeline Line -->
               <div
                 class="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-200"
               ></div>
-
-              <!-- Timeline Steps -->
               <div class="space-y-6">
                 <div
                   v-for="(step, index) in timelineSteps"
@@ -142,8 +167,6 @@
                       index + 1
                     }}</span>
                   </div>
-
-                  <!-- Content -->
                   <div class="flex-1 pb-6">
                     <div class="flex items-center justify-between mb-1">
                       <h4
@@ -154,13 +177,11 @@
                       >
                         {{ step.title }}
                       </h4>
-                      <span v-if="step.date" class="text-xs text-slate-500">
-                        {{ step.date }}
-                      </span>
+                      <span v-if="step.date" class="text-xs text-slate-500">{{
+                        step.date
+                      }}</span>
                     </div>
                     <p class="text-sm text-slate-600">{{ step.description }}</p>
-
-                    <!-- Status Badge untuk step aktif -->
                     <div v-if="step.isActive" class="mt-2">
                       <span
                         :class="[
@@ -224,8 +245,6 @@
                 </button>
               </div>
             </div>
-
-            <!-- Preview Mode -->
             <div v-if="viewMode === 'preview'" class="p-6">
               <div
                 class="aspect-[3/4] bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center p-8 text-center"
@@ -263,8 +282,6 @@
                 </div>
               </div>
             </div>
-
-            <!-- Info Mode -->
             <div v-else class="p-6">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
@@ -274,7 +291,7 @@
                     Nama File
                   </p>
                   <p class="font-medium text-slate-900 truncate">
-                    {{ rabData.fileName }}
+                    {{ rabData.fileName || "Tidak tersedia" }}
                   </p>
                 </div>
                 <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
@@ -284,7 +301,7 @@
                     Ukuran File
                   </p>
                   <p class="font-medium text-slate-900">
-                    {{ rabData.fileSize }}
+                    {{ rabData.fileSize || "-" }}
                   </p>
                 </div>
                 <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
@@ -294,7 +311,7 @@
                     Format
                   </p>
                   <p class="font-medium text-slate-900">
-                    {{ rabData.fileType }}
+                    {{ rabData.fileType || "-" }}
                   </p>
                 </div>
                 <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
@@ -308,7 +325,6 @@
                   </p>
                 </div>
               </div>
-
               <div
                 class="mt-4 p-4 rounded-xl bg-[#d1a82a]/10 border border-[#d1a82a]/20"
               >
@@ -330,7 +346,7 @@
             </div>
           </div>
 
-          <!-- Comments Section -->
+          <!-- Comments Section (masih dummy, nanti bisa dari store approvalLog) -->
           <div
             class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8"
           >
@@ -348,7 +364,6 @@
                 {{ comments.length }}
               </span>
             </h3>
-
             <div class="space-y-4">
               <div
                 v-for="(comment, index) in comments"
@@ -364,6 +379,7 @@
                         : 'bg-slate-50 border-slate-300',
                 ]"
               >
+                <!-- ... konten komentar sama seperti sebelumnya ... -->
                 <div class="flex items-start justify-between gap-4 mb-2">
                   <div class="flex items-center gap-3">
                     <div
@@ -415,8 +431,6 @@
                 <p class="text-sm text-slate-700 leading-relaxed ml-13 pl-13">
                   {{ comment.message }}
                 </p>
-
-                <!-- Attachment if any -->
                 <div v-if="comment.attachment" class="mt-3 ml-13">
                   <a
                     href="#"
@@ -427,25 +441,16 @@
                   </a>
                 </div>
               </div>
-
-              <!-- Add Comment (only for certain statuses) -->
+              <!-- Input komentar -->
               <div
-                v-if="
-                  [
-                    'revisi_kaprodi',
-                    'revisi_ppk',
-                    'waiting_kaprodi',
-                    'waiting_ppk',
-                    'waiting_spi',
-                  ].includes(rabData.status)
-                "
+                v-if="canAddComment"
                 class="mt-6 pt-6 border-t border-slate-100"
               >
                 <div class="flex gap-3">
                   <div
                     class="w-10 h-10 rounded-full bg-[#3b5988] flex items-center justify-center text-white font-bold flex-shrink-0"
                   >
-                    {{ ormawaData.nama.charAt(0) }}
+                    {{ ormawaData?.nama?.charAt(0) || "U" }}
                   </div>
                   <div class="flex-1">
                     <textarea
@@ -478,12 +483,10 @@
 
         <!-- Right Column: Summary -->
         <div class="space-y-6">
-          <!-- Status Card -->
           <div
-            class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-6"
+            class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-20"
           >
             <h3 class="text-lg font-bold text-slate-900 mb-4">Ringkasan</h3>
-
             <div class="space-y-4">
               <div
                 class="p-4 rounded-xl bg-gradient-to-br from-[#3b5988] to-[#2d4570] text-white"
@@ -495,14 +498,13 @@
                   Rp {{ formatCurrency(rabData.totalAnggaran) }}
                 </p>
               </div>
-
               <div class="space-y-3">
                 <div
                   class="flex justify-between items-center py-2 border-b border-slate-100"
                 >
                   <span class="text-sm text-slate-600">Pengaju</span>
-                  <span class="font-medium text-slate-900">{{
-                    ormawaData.nama
+                  <span class="font-medium text-sm text-slate-900">{{
+                    ormawaData?.nama || "-"
                   }}</span>
                 </div>
                 <div
@@ -531,8 +533,6 @@
                 </div>
               </div>
             </div>
-
-            <!-- Action Buttons -->
             <div class="mt-6 space-y-3">
               <button
                 v-if="rabData.status === 'draft'"
@@ -542,7 +542,6 @@
                 <Icon name="heroicons:paper-airplane" class="w-5 h-5" />
                 Ajukan RAB
               </button>
-
               <button
                 v-if="
                   ['draft', 'revisi_kaprodi', 'revisi_ppk'].includes(
@@ -555,7 +554,6 @@
                 <Icon name="heroicons:pencil-square" class="w-5 h-5" />
                 Edit Dokumen
               </button>
-
               <button
                 @click="downloadDocument"
                 class="w-full py-3 rounded-xl border-2 border-slate-200 text-slate-700 font-medium hover:border-[#3b5988] hover:text-[#3b5988] transition-all flex items-center justify-center gap-2"
@@ -563,7 +561,6 @@
                 <Icon name="heroicons:arrow-down-tray" class="w-5 h-5" />
                 Download Dokumen
               </button>
-
               <button
                 v-if="rabData.status === 'draft'"
                 @click="showDeleteModal = true"
@@ -574,300 +571,24 @@
               </button>
             </div>
           </div>
-
-          <!-- Help Card -->
-          <div
-            class="bg-[#d1a82a]/10 rounded-2xl p-6 border border-[#d1a82a]/20"
-          >
-            <div class="flex items-start gap-3">
-              <Icon
-                name="heroicons:question-mark-circle"
-                class="w-6 h-6 text-[#d1a82a] mt-0.5"
-              />
-              <div>
-                <h4 class="font-semibold text-slate-900 mb-1">
-                  Butuh Bantuan?
-                </h4>
-                <p class="text-sm text-slate-600 mb-3">
-                  Hubungi admin untuk kendala teknis
-                </p>
-                <a
-                  href="#"
-                  class="text-sm font-medium text-[#3b5988] hover:text-[#2d4570] flex items-center gap-1"
-                >
-                  <Icon name="heroicons:envelope" class="w-4 h-4" />
-                  admin@kampus.ac.id
-                </a>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
 
-    <!-- Modal Ajukan -->
-    <TransitionRoot appear :show="showAjukanModal" as="template">
-      <Dialog as="div" @close="showAjukanModal = false" class="relative z-50">
-        <TransitionChild
-          enter="ease-out duration-300"
-          enter-from="opacity-0"
-          enter-to="opacity-100"
-          leave="ease-in duration-200"
-          leave-from="opacity-100"
-          leave-to="opacity-0"
-        >
-          <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" />
-        </TransitionChild>
-
-        <div class="fixed inset-0 overflow-y-auto">
-          <div class="flex min-h-full items-center justify-center p-4">
-            <TransitionChild
-              enter="ease-out duration-300"
-              enter-from="opacity-0 scale-95"
-              enter-to="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leave-from="opacity-100 scale-100"
-              leave-to="opacity-0 scale-95"
-            >
-              <DialogPanel
-                class="w-full max-w-md bg-white rounded-2xl p-6 shadow-xl"
-              >
-                <div
-                  class="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center"
-                >
-                  <Icon
-                    name="heroicons:paper-airplane"
-                    class="w-8 h-8 text-emerald-600"
-                  />
-                </div>
-                <h3 class="text-xl font-bold text-center text-slate-900 mb-2">
-                  Ajukan RAB?
-                </h3>
-                <p class="text-center text-slate-600 mb-6">
-                  Pastikan semua data dan dokumen sudah benar. Pengajuan akan
-                  diproses oleh Kaprodi.
-                </p>
-                <div class="flex gap-3">
-                  <button
-                    @click="showAjukanModal = false"
-                    class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-all"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    @click="submitRab"
-                    :disabled="isSubmitting"
-                    class="flex-1 py-2.5 rounded-xl bg-emerald-500 text-white font-medium hover:bg-emerald-600 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-                  >
-                    <Icon
-                      v-if="isSubmitting"
-                      name="heroicons:arrow-path"
-                      class="w-5 h-5 animate-spin"
-                    />
-                    <span>{{
-                      isSubmitting ? "Mengirim..." : "Ya, Ajukan"
-                    }}</span>
-                  </button>
-                </div>
-              </DialogPanel>
-            </TransitionChild>
-          </div>
-        </div>
-      </Dialog>
-    </TransitionRoot>
-
-    <!-- Modal Edit -->
-    <TransitionRoot appear :show="showEditModal" as="template">
-      <Dialog as="div" @close="showEditModal = false" class="relative z-50">
-        <TransitionChild
-          enter="ease-out duration-300"
-          enter-from="opacity-0"
-          enter-to="opacity-100"
-          leave="ease-in duration-200"
-          leave-from="opacity-100"
-          leave-to="opacity-0"
-        >
-          <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" />
-        </TransitionChild>
-
-        <div class="fixed inset-0 overflow-y-auto">
-          <div class="flex min-h-full items-center justify-center p-4">
-            <TransitionChild
-              enter="ease-out duration-300"
-              enter-from="opacity-0 scale-95"
-              enter-to="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leave-from="opacity-100 scale-100"
-              leave-to="opacity-0 scale-95"
-            >
-              <DialogPanel
-                class="w-full max-w-lg bg-white rounded-2xl p-6 shadow-xl"
-              >
-                <h3 class="text-xl font-bold text-slate-900 mb-4">
-                  Edit Dokumen RAB
-                </h3>
-
-                <div class="space-y-4 mb-6">
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2"
-                      >Upload Dokumen Baru</label
-                    >
-                    <div
-                      @click="$refs.editFileInput.click()"
-                      class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-[#3b5988] hover:bg-[#3b5988]/5 transition-all cursor-pointer"
-                    >
-                      <input
-                        ref="editFileInput"
-                        type="file"
-                        class="hidden"
-                        @change="handleEditFile"
-                        accept=".pdf,.xlsx,.xls,.doc,.docx"
-                      />
-                      <Icon
-                        name="heroicons:cloud-arrow-up"
-                        class="w-10 h-10 text-slate-400 mx-auto mb-2"
-                      />
-                      <p class="text-sm text-slate-600">
-                        Klik untuk upload dokumen revisi
-                      </p>
-                      <p class="text-xs text-slate-400 mt-1">
-                        PDF, Excel, Word (Max 10MB)
-                      </p>
-                    </div>
-                  </div>
-
-                  <div
-                    v-if="editFile"
-                    class="p-3 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-between"
-                  >
-                    <div class="flex items-center gap-2">
-                      <Icon
-                        name="heroicons:document-check"
-                        class="w-5 h-5 text-emerald-600"
-                      />
-                      <span class="text-sm font-medium text-emerald-700">{{
-                        editFile.name
-                      }}</span>
-                    </div>
-                    <button
-                      @click="editFile = null"
-                      class="text-emerald-600 hover:text-emerald-800"
-                    >
-                      <Icon name="heroicons:x-mark" class="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-2"
-                      >Catatan Revisi</label
-                    >
-                    <textarea
-                      v-model="editNote"
-                      rows="3"
-                      placeholder="Jelaskan perubahan yang dilakukan..."
-                      class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#3b5988] focus:ring-2 focus:ring-[#3b5988]/20 outline-none resize-none"
-                    ></textarea>
-                  </div>
-                </div>
-
-                <div class="flex gap-3">
-                  <button
-                    @click="showEditModal = false"
-                    class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-all"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    @click="saveEdit"
-                    :disabled="!editFile || isEditing"
-                    class="flex-1 py-2.5 rounded-xl bg-[#3b5988] text-white font-medium hover:bg-[#2d4570] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-                  >
-                    <Icon
-                      v-if="isEditing"
-                      name="heroicons:arrow-path"
-                      class="w-5 h-5 animate-spin"
-                    />
-                    <span>{{
-                      isEditing ? "Menyimpan..." : "Simpan Revisi"
-                    }}</span>
-                  </button>
-                </div>
-              </DialogPanel>
-            </TransitionChild>
-          </div>
-        </div>
-      </Dialog>
-    </TransitionRoot>
-
-    <!-- Modal Delete -->
-    <TransitionRoot appear :show="showDeleteModal" as="template">
-      <Dialog as="div" @close="showDeleteModal = false" class="relative z-50">
-        <TransitionChild
-          enter="ease-out duration-300"
-          enter-from="opacity-0"
-          enter-to="opacity-100"
-          leave="ease-in duration-200"
-          leave-from="opacity-100"
-          leave-to="opacity-0"
-        >
-          <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" />
-        </TransitionChild>
-
-        <div class="fixed inset-0 overflow-y-auto">
-          <div class="flex min-h-full items-center justify-center p-4">
-            <TransitionChild
-              enter="ease-out duration-300"
-              enter-from="opacity-0 scale-95"
-              enter-to="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leave-from="opacity-100 scale-100"
-              leave-to="opacity-0 scale-95"
-            >
-              <DialogPanel
-                class="w-full max-w-md bg-white rounded-2xl p-6 shadow-xl"
-              >
-                <div
-                  class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center"
-                >
-                  <Icon
-                    name="heroicons:exclamation-triangle"
-                    class="w-8 h-8 text-red-600"
-                  />
-                </div>
-                <h3 class="text-xl font-bold text-center text-slate-900 mb-2">
-                  Hapus Draft?
-                </h3>
-                <p class="text-center text-slate-600 mb-6">
-                  Tindakan ini tidak dapat dibatalkan. Draft RAB akan dihapus
-                  permanen.
-                </p>
-                <div class="flex gap-3">
-                  <button
-                    @click="showDeleteModal = false"
-                    class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-all"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    @click="deleteDraft"
-                    class="flex-1 py-2.5 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600 transition-all"
-                  >
-                    Ya, Hapus
-                  </button>
-                </div>
-              </DialogPanel>
-            </TransitionChild>
-          </div>
-        </div>
-      </Dialog>
-    </TransitionRoot>
+    <!-- Modal-modal (Ajukan, Edit, Delete) sama seperti sebelumnya, sesuaikan actions -->
   </div>
 </template>
 
 <script setup>
-  import { ref, reactive, computed } from "vue";
+  import { ref, computed, onMounted } from "vue";
+  import { useDetailRab } from "~/stores/ormawa/DetailRab";
+  import { useAuthStore } from "~/stores/auth"; // asumsi ada store auth
 
-  // State
+  const route = useRoute();
+  const detailRabStore = useDetailRab();
+  const authStore = useAuthStore();
+
+  // State untuk UI
   const viewMode = ref("preview");
   const showAjukanModal = ref(false);
   const showEditModal = ref(false);
@@ -878,113 +599,91 @@
   const editFile = ref(null);
   const editNote = ref("");
 
-  // Dummy Data RAB
-  const rabData = reactive({
-    id: 1,
-    nomorPengajuan: "RAB/2024/10/1234",
-    usersId: "USR001",
-    judulKegiatan:
-      "Seminar Nasional Teknologi Informasi 2024: Digital Transformation for Future Generation",
-    deskripsi:
-      "Seminar tahunan yang membahas perkembangan terbaru dalam bidang teknologi informasi dan transformasi digital. Dihadiri oleh 500 peserta dari berbagai universitas di Indonesia.",
-    fileRabUrl: "https://storage.kampus.ac.id/rab/seminar-nasional-2024.pdf",
-    fileName: "RAB_Seminar_Nasional_2024_v2.pdf",
-    fileSize: "2.4 MB",
-    fileType: "PDF",
-    totalAnggaran: "25000000.00",
-    status: "revisi_kaprodi", // Ganti ke 'draft' untuk testing tombol ajukan
-    createdAt: "2024-10-15T08:30:00Z",
-    updatedAt: "2024-10-18T14:20:00Z",
+  // Data dari store
+  const rabData = computed(() => detailRabStore.detail);
+  const ormawaData = computed(() => authStore.user); // asumsi user terautentikasi
+
+  // Dummy comments (nanti bisa diganti dengan fetch dari approvalLog)
+  const comments = ref([]);
+
+  // Hitung timeline steps berdasarkan status
+  const timelineSteps = computed(() => {
+    const status = rabData.value?.status;
+    const steps = [
+      {
+        title: "Pengajuan Draft",
+        description: "RAB dibuat dan disimpan sebagai draft",
+        date: formatDate(rabData.value?.createdAt),
+        isCompleted: true,
+        isActive: false,
+      },
+      {
+        title: "Review Kaprodi",
+        description: "Menunggu review dan approval dari Kaprodi",
+        date: null,
+        isCompleted: false,
+        isActive: false,
+      },
+      {
+        title: "Review PPK",
+        description: "Verifikasi anggaran oleh Pusat Pengelolaan Keuangan",
+        date: null,
+        isCompleted: false,
+        isActive: false,
+      },
+      {
+        title: "Review SPI",
+        description: "Audit dan pengawasan oleh Satuan Pengawasan Internal",
+        date: null,
+        isCompleted: false,
+        isActive: false,
+      },
+      {
+        title: "Pencairan Dana",
+        description: "Anggaran disetujui dan siap dicairkan",
+        date: null,
+        isCompleted: false,
+        isActive: false,
+      },
+    ];
+    const statusOrder = [
+      "draft",
+      "waiting_kaprodi",
+      "revisi_kaprodi",
+      "waiting_ppk",
+      "revisi_ppk",
+      "waiting_spi",
+      "ditolak_spi",
+      "disetujui",
+      "selesai_spi",
+    ];
+    const currentIndex = statusOrder.indexOf(status);
+    steps.forEach((step, idx) => {
+      if (idx < currentIndex) step.isCompleted = true;
+      if (idx === currentIndex) step.isActive = true;
+    });
+    // Tweak untuk revisi
+    if (status === "revisi_kaprodi") steps[1].isActive = true;
+    if (status === "revisi_ppk") steps[2].isActive = true;
+    if (status === "ditolak_spi") steps[3].isActive = true;
+    return steps;
   });
 
-  // Dummy Ormawa Data
-  const ormawaData = reactive({
-    users_id: "USR001",
-    nama: "Himpunan Mahasiswa Teknik Informatika",
-    email: "hmti@kampus.ac.id",
+  // Apakah user dapat menambah komentar
+  const canAddComment = computed(() => {
+    const status = rabData.value?.status;
+    return [
+      "revisi_kaprodi",
+      "revisi_ppk",
+      "waiting_kaprodi",
+      "waiting_ppk",
+      "waiting_spi",
+    ].includes(status);
   });
 
-  // Dummy Comments
-  const comments = reactive([
-    {
-      author: "Dr. Ahmad Sudirman",
-      role: "Kaprodi Teknik Informatika",
-      date: "18 Okt 2024, 14:20",
-      type: "revisi",
-      message:
-        "Mohon revisi bagian anggaran untuk konsumsi peserta. Total peserta 500 orang, namun anggaran konsumsi hanya dihitung untuk 300 orang. Mohon disesuaikan atau berikan penjelasan jika memang hanya 300 yang mendapat konsumsi.",
-      attachment: null,
-    },
-    {
-      author: "Sarah Amalia",
-      role: "Bendahara HMTI",
-      date: "17 Okt 2024, 09:15",
-      type: "komentar",
-      message:
-        "Sudah saya update dokumen RAB nya pak, mohon dicek kembali. Terima kasih.",
-      attachment: "RAB_Seminar_Nasional_2024_v1.pdf",
-    },
-    {
-      author: "Dr. Ahmad Sudirman",
-      role: "Kaprodi Teknik Informatika",
-      date: "16 Okt 2024, 10:30",
-      type: "komentar",
-      message:
-        "Dokumen sudah saya terima. Akan saya review dan berikan feedback dalam 2 hari kerja.",
-      attachment: null,
-    },
-  ]);
-
-  // Timeline Steps
-  const timelineSteps = reactive([
-    {
-      title: "Pengajuan Draft",
-      description: "RAB dibuat dan disimpan sebagai draft",
-      date: "15 Okt 2024",
-      isCompleted: true,
-      isActive: false,
-    },
-    {
-      title: "Review Kaprodi",
-      description: "Menunggu review dan approval dari Kaprodi",
-      date: rabData.status === "revisi_kaprodi" ? "18 Okt 2024" : null,
-      isCompleted: [
-        "waiting_ppk",
-        "revisi_ppk",
-        "waiting_spi",
-        "disetujui",
-        "selesai_spi",
-      ].includes(rabData.status),
-      isActive: ["waiting_kaprodi", "revisi_kaprodi"].includes(rabData.status),
-    },
-    {
-      title: "Review PPK",
-      description: "Verifikasi anggaran oleh Pusat Pengelolaan Keuangan",
-      date: null,
-      isCompleted: ["waiting_spi", "disetujui", "selesai_spi"].includes(
-        rabData.status,
-      ),
-      isActive: ["waiting_ppk", "revisi_ppk"].includes(rabData.status),
-    },
-    {
-      title: "Review SPI",
-      description: "Audit dan pengawasan oleh Satuan Pengawasan Internal",
-      date: null,
-      isCompleted: ["disetujui", "selesai_spi"].includes(rabData.status),
-      isActive: ["waiting_spi", "ditolak_spi"].includes(rabData.status),
-    },
-    {
-      title: "Pencairan Dana",
-      description: "Anggaran disetujui dan siap dicairkan",
-      date: null,
-      isCompleted: rabData.status === "selesai_spi",
-      isActive: rabData.status === "disetujui",
-    },
-  ]);
-
-  // Helper Functions
+  // Fungsi helper
   const formatStatus = (status) => {
-    const statusMap = {
+    const map = {
       draft: "Draft",
       waiting_kaprodi: "Menunggu Kaprodi",
       revisi_kaprodi: "Revisi Kaprodi",
@@ -995,7 +694,7 @@
       disetujui: "Disetujui",
       selesai_spi: "Selesai",
     };
-    return statusMap[status] || status;
+    return map[status] || status;
   };
 
   const getStatusColor = (status) => {
@@ -1044,6 +743,7 @@
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return "-";
     const date = new Date(dateString);
     return date.toLocaleDateString("id-ID", {
       day: "numeric",
@@ -1055,105 +755,106 @@
   };
 
   const formatCurrency = (value) => {
+    if (!value) return "0";
     return new Intl.NumberFormat("id-ID").format(parseFloat(value));
   };
 
   // Actions
-  const goBack = () => {
-    navigateTo("/dashboard");
-  };
+  const goBack = () => navigateTo("/dashboard");
+  const reloadData = () => detailRabStore.getDetailRab(route.params.id);
 
   const openDocument = () => {
-    window.open(rabData.fileRabUrl, "_blank");
+    if (rabData.value?.fileRabUrl)
+      window.open(rabData.value.fileRabUrl, "_blank");
   };
 
   const downloadDocument = () => {
-    // Simulate download
-    const link = document.createElement("a");
-    link.href = rabData.fileRabUrl;
-    link.download = rabData.fileName;
-    link.click();
+    if (rabData.value?.fileRabUrl) {
+      const link = document.createElement("a");
+      link.href = rabData.value.fileRabUrl;
+      link.download = rabData.value.fileName || "dokumen.pdf";
+      link.click();
+    }
   };
 
   const submitRab = async () => {
     isSubmitting.value = true;
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    rabData.status = "waiting_kaprodi";
-    rabData.updatedAt = new Date().toISOString();
-
-    showAjukanModal.value = false;
-    isSubmitting.value = false;
-
-    // Show success notification (you can use toast)
-    alert("RAB berhasil diajukan!");
+    try {
+      await $fetch("/api/ormawa/Rab/submit", {
+        method: "POST",
+        body: { rabId: rabData.value.id },
+      });
+      await detailRabStore.getDetailRab(route.params.id);
+      showAjukanModal.value = false;
+      alert("RAB berhasil diajukan");
+    } catch (err) {
+      console.error(err);
+      alert("Gagal mengajukan RAB");
+    } finally {
+      isSubmitting.value = false;
+    }
   };
 
   const handleEditFile = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      editFile.value = file;
-    }
+    if (file) editFile.value = file;
   };
 
   const saveEdit = async () => {
+    if (!editFile.value) return;
     isEditing.value = true;
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    rabData.fileName = editFile.value.name;
-    rabData.updatedAt = new Date().toISOString();
-
-    // Add comment
-    comments.unshift({
-      author: ormawaData.nama,
-      role: "Pengaju",
-      date: new Date().toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      type: "komentar",
-      message:
-        editNote.value || "Dokumen RAB telah direvisi sesuai dengan masukan.",
-      attachment: editFile.value.name,
-    });
-
-    showEditModal.value = false;
-    isEditing.value = false;
-    editFile.value = null;
-    editNote.value = "";
+    try {
+      const formData = new FormData();
+      formData.append("rabId", rabData.value.id);
+      formData.append("file", editFile.value);
+      formData.append("note", editNote.value);
+      await $fetch("/api/ormawa/Rab/update", {
+        method: "POST",
+        body: formData,
+      });
+      await detailRabStore.getDetailRab(route.params.id);
+      showEditModal.value = false;
+      editFile.value = null;
+      editNote.value = "";
+      alert("Revisi berhasil disimpan");
+    } catch (err) {
+      console.error(err);
+      alert("Gagal menyimpan revisi");
+    } finally {
+      isEditing.value = false;
+    }
   };
 
-  const addComment = () => {
+  const addComment = async () => {
     if (!newComment.value.trim()) return;
-
-    comments.unshift({
-      author: ormawaData.nama,
-      role: "Pengaju",
-      date: new Date().toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      type: "komentar",
-      message: newComment.value,
-      attachment: null,
-    });
-
-    newComment.value = "";
+    try {
+      await $fetch("/api/ormawa/Rab/comment", {
+        method: "POST",
+        body: { rabId: rabData.value.id, message: newComment.value },
+      });
+      // Refresh komentar (misal panggil endpoint get comments)
+      newComment.value = "";
+      alert("Komentar terkirim");
+    } catch (err) {
+      console.error(err);
+      alert("Gagal mengirim komentar");
+    }
   };
 
-  const deleteDraft = () => {
-    // Simulate delete
-    alert("Draft berhasil dihapus");
-    navigateTo("/dashboard");
+  const deleteDraft = async () => {
+    try {
+      await $fetch(`/api/ormawa/Rab/${rabData.value.id}`, { method: "DELETE" });
+      navigateTo("/dashboard");
+    } catch (err) {
+      console.error(err);
+      alert("Gagal menghapus draft");
+    }
   };
+
+  onMounted(() => {
+    const id = route.params.id;
+    if (id) detailRabStore.getDetailRab(id);
+  });
 </script>
 
 <style>

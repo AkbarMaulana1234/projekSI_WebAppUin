@@ -124,7 +124,7 @@
 
             <td class="px-6 py-4 whitespace-nowrap text-right">
               <button
-                @click="openDetail(rab)"
+                @click="openDetail(rab.pengajuanRabTable.id)"
                 class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#3b5988] bg-[#3b5988]/10 hover:bg-[#3b5988] hover:text-white transition-all group/btn"
               >
                 <span>Detail</span>
@@ -175,9 +175,9 @@
     </div>
   </div>
 </template>
-<script setup>
+<script setup lang="ts">
   import { useTableStore } from "~/stores/ormawa/table";
-
+  import { ref, onMounted } from "vue";
   const isSidebarOpen = ref(false);
   const isModalOpen = ref(false);
   const selectedRab = ref(null);
@@ -187,8 +187,8 @@
     await tableStore.getTable();
     console.log(tableStore.table);
   });
-  const openDetail = (rab) => {
-    selectedRab.value = rab;
-    isModalOpen.value = true;
+  const openDetail = (rabID: number) => {
+    console.log(rabID);
+    return navigateTo(`/dashboard/ormawa/detailRab/${rabID}`);
   };
 </script>

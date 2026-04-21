@@ -39,8 +39,6 @@ export default defineEventHandler(async (event) => {
       },
     });
   }
-  const user = decoded;
-  event.context.user = user;
   return {
     valid: true,
     message: "Token is valid",
