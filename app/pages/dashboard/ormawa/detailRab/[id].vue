@@ -1,10 +1,7 @@
 <template>
   <div class="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
     <!-- Loading State -->
-    <div
-      v-if="detailRabStore.loading"
-      class="flex justify-center items-center h-64"
-    >
+    <div v-if="loading" class="flex justify-center items-center h-64">
       <div class="text-center">
         <Icon
           name="heroicons:arrow-path"
@@ -15,14 +12,14 @@
     </div>
 
     <!-- Error State -->
-    <div v-else-if="detailRabStore.error" class="max-w-6xl mx-auto">
+    <div v-else-if="error" class="max-w-6xl mx-auto">
       <div class="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
         <Icon
           name="heroicons:exclamation-triangle"
           class="w-12 h-12 text-red-500 mx-auto mb-4"
         />
         <h3 class="text-lg font-bold text-red-800 mb-2">Gagal Memuat Data</h3>
-        <p class="text-red-600">{{ detailRabStore.error }}</p>
+        <p class="text-red-600">{{ error }}</p>
         <button
           @click="reloadData"
           class="mt-4 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
@@ -65,7 +62,6 @@
         </div>
       </div>
 
-      <!-- Grid Layout Sama Seperti Sebelumnya, Gunakan rabData dari store -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Left Column -->
         <div class="lg:col-span-2 space-y-6">
@@ -124,7 +120,7 @@
             </div>
           </div>
 
-          <!-- Timeline Progress (dihitung dari status) -->
+          <!-- Timeline Progress -->
           <div
             class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8"
           >
@@ -147,7 +143,6 @@
                     step.isActive ? 'opacity-100' : 'opacity-60',
                   ]"
                 >
-                  <!-- Icon -->
                   <div
                     :class="[
                       'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 border-2',
@@ -204,7 +199,7 @@
             </div>
           </div>
 
-          <!-- Document Viewer -->
+          <!-- Document Viewer dengan Preview -->
           <div
             class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"
           >
@@ -246,7 +241,49 @@
               </div>
             </div>
             <div v-if="viewMode === 'preview'" class="p-6">
+              <div v-if="fileObjectUrl" class="w-full">
+                <iframe
+                  v-if="isPdf"
+                  :src="fileObjectUrl"
+                  class="w-full h-[600px] rounded-xl border border-slate-200"
+                  frameborder="0"
+                ></iframe>
+
+                <div v-else class="text-center py-12">
+                  <Icon
+                    name="heroicons:document"
+                    class="w-16 h-16 text-slate-400 mx-auto mb-4"
+                  />
+                  <p class="text-slate-600 mb-4">
+                    Preview tidak tersedia untuk tipe file ini.
+                  </p>
+                  <button
+                    @click="downloadDocument"
+                    class="px-4 py-2 bg-[#3b5988] text-white rounded-lg"
+                  >
+                    Download File
+                  </button>
+                </div>
+                <!-- Tombol aksi -->
+                <div class="flex justify-center gap-3 mt-4">
+                  <button
+                    @click="openDocument"
+                    class="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#3b5988] text-white font-medium hover:bg-[#2d4570] transition-all"
+                  >
+                    <Icon name="heroicons:eye" class="w-5 h-5" />
+                    Lihat di Tab Baru
+                  </button>
+                  <button
+                    @click="downloadDocument"
+                    class="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-[#3b5988] text-[#3b5988] font-medium hover:bg-[#3b5988]/5 transition-all"
+                  >
+                    <Icon name="heroicons:arrow-down-tray" class="w-5 h-5" />
+                    Download
+                  </button>
+                </div>
+              </div>
               <div
+                v-else
                 class="aspect-[3/4] bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center p-8 text-center"
               >
                 <div
@@ -258,30 +295,22 @@
                   />
                 </div>
                 <h4 class="text-lg font-semibold text-slate-900 mb-2">
-                  Preview Dokumen
+                  Preview Tidak Tersedia
                 </h4>
                 <p class="text-sm text-slate-500 mb-4 max-w-sm">
-                  File dokumen RAB siap untuk dilihat. Klik tombol di bawah
-                  untuk membuka atau mendownload file.
+                  File mungkin belum diupload atau format tidak didukung untuk
+                  pratinjau.
                 </p>
-                <div class="flex gap-3">
-                  <button
-                    @click="openDocument"
-                    class="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#3b5988] text-white font-medium hover:bg-[#2d4570] transition-all"
-                  >
-                    <Icon name="heroicons:eye" class="w-5 h-5" />
-                    Lihat Dokumen
-                  </button>
-                  <button
-                    @click="downloadDocument"
-                    class="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-[#3b5988] text-[#3b5988] font-medium hover:bg-[#3b5988]/5 transition-all"
-                  >
-                    <Icon name="heroicons:arrow-down-tray" class="w-5 h-5" />
-                    Download
-                  </button>
-                </div>
+                <button
+                  @click="downloadDocument"
+                  class="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-[#3b5988] text-[#3b5988] font-medium hover:bg-[#3b5988]/5 transition-all"
+                >
+                  <Icon name="heroicons:arrow-down-tray" class="w-5 h-5" />
+                  Download File
+                </button>
               </div>
             </div>
+            <!-- Info Mode -->
             <div v-else class="p-6">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
@@ -291,7 +320,7 @@
                     Nama File
                   </p>
                   <p class="font-medium text-slate-900 truncate">
-                    {{ rabData.fileName || "Tidak tersedia" }}
+                    {{ fileInfo.name || "Tidak tersedia" }}
                   </p>
                 </div>
                 <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
@@ -301,7 +330,7 @@
                     Ukuran File
                   </p>
                   <p class="font-medium text-slate-900">
-                    {{ rabData.fileSize || "-" }}
+                    {{ fileInfo.size || "-" }}
                   </p>
                 </div>
                 <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
@@ -311,7 +340,7 @@
                     Format
                   </p>
                   <p class="font-medium text-slate-900">
-                    {{ rabData.fileType || "-" }}
+                    {{ fileInfo.type || "-" }}
                   </p>
                 </div>
                 <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
@@ -346,7 +375,7 @@
             </div>
           </div>
 
-          <!-- Comments Section (masih dummy, nanti bisa dari store approvalLog) -->
+          <!-- Comments Section -->
           <div
             class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8"
           >
@@ -379,7 +408,6 @@
                         : 'bg-slate-50 border-slate-300',
                 ]"
               >
-                <!-- ... konten komentar sama seperti sebelumnya ... -->
                 <div class="flex items-start justify-between gap-4 mb-2">
                   <div class="flex items-center gap-3">
                     <div
@@ -575,20 +603,136 @@
       </div>
     </div>
 
-    <!-- Modal-modal (Ajukan, Edit, Delete) sama seperti sebelumnya, sesuaikan actions -->
+    <!-- Modal Ajukan -->
+    <div
+      v-if="showAjukanModal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      @click.self="showAjukanModal = false"
+    >
+      <div class="bg-white rounded-2xl max-w-md w-full p-6">
+        <h3 class="text-xl font-bold text-slate-900 mb-4">Ajukan RAB</h3>
+        <p class="text-slate-600 mb-6">
+          Apakah Anda yakin ingin mengajukan RAB ini? Setelah diajukan, dokumen
+          tidak dapat diubah hingga ada permintaan revisi.
+        </p>
+        <div class="flex justify-end gap-3">
+          <button
+            @click="showAjukanModal = false"
+            class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+          >
+            Batal
+          </button>
+          <button
+            @click="submitRab"
+            :disabled="isSubmitting"
+            class="px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+          >
+            {{ isSubmitting ? "Mengajukan..." : "Ya, Ajukan" }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Edit Dokumen -->
+    <div
+      v-if="showEditModal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      @click.self="showEditModal = false"
+    >
+      <div class="bg-white rounded-2xl max-w-lg w-full p-6">
+        <h3 class="text-xl font-bold text-slate-900 mb-4">Edit Dokumen RAB</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1"
+              >Upload File Baru</label
+            >
+            <input
+              type="file"
+              @change="handleEditFile"
+              accept=".pdf,.doc,.docx,.xls,.xlsx"
+              class="w-full border border-slate-200 rounded-lg p-2"
+            />
+            <p class="text-xs text-slate-500 mt-1">
+              Unggah file PDF, Word, atau Excel (maks. 10MB)
+            </p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1"
+              >Catatan Revisi (opsional)</label
+            >
+            <textarea
+              v-model="editNote"
+              rows="3"
+              placeholder="Jelaskan perubahan yang dilakukan..."
+              class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-[#3b5988] focus:ring-1 focus:ring-[#3b5988] outline-none"
+            ></textarea>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button
+            @click="showEditModal = false"
+            class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+          >
+            Batal
+          </button>
+          <button
+            @click="saveEdit"
+            :disabled="isEditing || !editFile"
+            class="px-4 py-2 rounded-lg bg-[#3b5988] text-white hover:bg-[#2d4570] disabled:opacity-50"
+          >
+            {{ isEditing ? "Menyimpan..." : "Simpan Perubahan" }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Hapus Draft -->
+    <div
+      v-if="showDeleteModal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      @click.self="showDeleteModal = false"
+    >
+      <div class="bg-white rounded-2xl max-w-md w-full p-6">
+        <h3 class="text-xl font-bold text-slate-900 mb-4">Hapus Draft</h3>
+        <p class="text-slate-600 mb-6">
+          Apakah Anda yakin ingin menghapus draft RAB ini? Tindakan ini tidak
+          dapat dibatalkan.
+        </p>
+        <div class="flex justify-end gap-3">
+          <button
+            @click="showDeleteModal = false"
+            class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
+          >
+            Batal
+          </button>
+          <button
+            @click="deleteDraft"
+            class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
+          >
+            Hapus
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-  import { ref, computed, onMounted } from "vue";
-  import { useDetailRab } from "~/stores/ormawa/DetailRab";
-  import { useAuthStore } from "~/stores/auth"; // asumsi ada store auth
+  import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+  import { useRabStore } from "~/stores/ormawa/DetailRab";
+  import { useAuthStore } from "~/stores/auth";
 
   const route = useRoute();
-  const detailRabStore = useDetailRab();
+  const rabStore = useRabStore();
   const authStore = useAuthStore();
 
-  // State untuk UI
+  // State dari store
+  const rabData = computed(() => rabStore.detail);
+  const loading = computed(() => rabStore.loading);
+  const error = computed(() => rabStore.error);
+  const fileObjectUrl = computed(() => rabStore.fileObjectUrl);
+
+  // UI state
   const viewMode = ref("preview");
   const showAjukanModal = ref(false);
   const showEditModal = ref(false);
@@ -599,14 +743,57 @@
   const editFile = ref(null);
   const editNote = ref("");
 
-  // Data dari store
-  const rabData = computed(() => detailRabStore.detail);
-  const ormawaData = computed(() => authStore.user); // asumsi user terautentikasi
-
-  // Dummy comments (nanti bisa diganti dengan fetch dari approvalLog)
+  // Data dummy comments
   const comments = ref([]);
+  const ormawaData = computed(() => authStore.user);
 
-  // Hitung timeline steps berdasarkan status
+  // Informasi file dari blob
+  const fileInfo = computed(() => {
+    if (rabStore.fileBlob) {
+      const blob = rabStore.fileBlob;
+      let name = "dokumen";
+      if (rabData.value?.fileRabUrl) {
+        const urlParts = rabData.value.fileRabUrl.split("/");
+        name = urlParts.pop() || "dokumen";
+      }
+      return {
+        name: name,
+        size: formatBytes(blob.size),
+        type: blob.type || "application/octet-stream",
+      };
+    }
+    return { name: null, size: null, type: null };
+  });
+
+  // Helper untuk menentukan tipe file
+  const isPdf = computed(() => {
+    const type = fileInfo.value.type;
+    const url = rabData.value?.fileRabUrl || "";
+    return type === "application/pdf" || url.toLowerCase().endsWith(".pdf");
+  });
+
+  const isOffice = computed(() => {
+    const type = fileInfo.value.type;
+    const url = rabData.value?.fileRabUrl || "";
+    return (
+      type.includes("word") ||
+      type.includes("document") ||
+      type.includes("excel") ||
+      type.includes("sheet") ||
+      /\.(doc|docx|xls|xlsx)$/i.test(url)
+    );
+  });
+
+  // Helper format bytes
+  function formatBytes(bytes) {
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  }
+
+  // Timeline steps
   const timelineSteps = computed(() => {
     const status = rabData.value?.status;
     const steps = [
@@ -662,14 +849,12 @@
       if (idx < currentIndex) step.isCompleted = true;
       if (idx === currentIndex) step.isActive = true;
     });
-    // Tweak untuk revisi
     if (status === "revisi_kaprodi") steps[1].isActive = true;
     if (status === "revisi_ppk") steps[2].isActive = true;
     if (status === "ditolak_spi") steps[3].isActive = true;
     return steps;
   });
 
-  // Apakah user dapat menambah komentar
   const canAddComment = computed(() => {
     const status = rabData.value?.status;
     return [
@@ -681,7 +866,7 @@
     ].includes(status);
   });
 
-  // Fungsi helper
+  // Helper functions
   const formatStatus = (status) => {
     const map = {
       draft: "Draft",
@@ -761,19 +946,24 @@
 
   // Actions
   const goBack = () => navigateTo("/dashboard");
-  const reloadData = () => detailRabStore.getDetailRab(route.params.id);
+  const reloadData = () => rabStore.fetchFullRabData(route.params.id);
 
   const openDocument = () => {
-    if (rabData.value?.fileRabUrl)
+    if (fileObjectUrl.value) {
+      window.open(fileObjectUrl.value, "_blank");
+    } else if (rabData.value?.fileRabUrl) {
       window.open(rabData.value.fileRabUrl, "_blank");
+    }
   };
 
   const downloadDocument = () => {
-    if (rabData.value?.fileRabUrl) {
+    if (fileObjectUrl.value) {
       const link = document.createElement("a");
-      link.href = rabData.value.fileRabUrl;
-      link.download = rabData.value.fileName || "dokumen.pdf";
+      link.href = fileObjectUrl.value;
+      link.download = fileInfo.value.name || "dokumen_rab.pdf";
       link.click();
+    } else if (rabData.value?.fileRabUrl) {
+      window.open(rabData.value.fileRabUrl, "_blank");
     }
   };
 
@@ -784,7 +974,7 @@
         method: "POST",
         body: { rabId: rabData.value.id },
       });
-      await detailRabStore.getDetailRab(route.params.id);
+      await rabStore.fetchFullRabData(route.params.id);
       showAjukanModal.value = false;
       alert("RAB berhasil diajukan");
     } catch (err) {
@@ -812,7 +1002,7 @@
         method: "POST",
         body: formData,
       });
-      await detailRabStore.getDetailRab(route.params.id);
+      await rabStore.fetchFullRabData(route.params.id);
       showEditModal.value = false;
       editFile.value = null;
       editNote.value = "";
@@ -832,7 +1022,6 @@
         method: "POST",
         body: { rabId: rabData.value.id, message: newComment.value },
       });
-      // Refresh komentar (misal panggil endpoint get comments)
       newComment.value = "";
       alert("Komentar terkirim");
     } catch (err) {
@@ -851,9 +1040,14 @@
     }
   };
 
+  // Lifecycle
   onMounted(() => {
     const id = route.params.id;
-    if (id) detailRabStore.getDetailRab(id);
+    if (id) rabStore.fetchFullRabData(id);
+  });
+
+  onBeforeUnmount(() => {
+    rabStore.cleanupFileUrl();
   });
 </script>
 
@@ -879,7 +1073,6 @@
     animation: fadeIn 0.3s ease-out;
   }
 
-  /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
   }

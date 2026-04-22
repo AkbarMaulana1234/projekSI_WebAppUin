@@ -670,15 +670,9 @@
     }
 
     // Validasi tipe file
-    const allowedTypes = [
-      "application/pdf",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "application/vnd.ms-excel",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ];
+    const allowedTypes = ["application/pdf"];
     if (!allowedTypes.includes(file.type)) {
-      errors.file_rab = "Format file harus PDF, Excel, atau Word";
+      errors.file_rab = "Format file harus PDF";
       return;
     }
 

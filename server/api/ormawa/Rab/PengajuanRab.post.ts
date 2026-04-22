@@ -1,6 +1,6 @@
 import { defineEventHandler, readMultipartFormData, createError } from "h3";
 import { writeFile, mkdir } from "node:fs/promises";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { existsSync } from "node:fs";
 import { useDrizzle } from "../../../db/index";
 import {
@@ -8,6 +8,18 @@ import {
   statusEnum,
   type StatusEnum,
 } from "../../../db/schema/pengajuanRabSchema";
+
+// Asumsi fungsi createFilePath sudah didefinisikan di tempat lain (misal utils)
+// Jika belum, kita tulis ulang di sini untuk kelengkapan
+async function createFilePath(
+  category: string,
+  status: string,
+): Promise<string> {
+  const rootPath = join(process.cwd(), "uploads");
+  const targetPath = join(rootPath, category, status);
+  await mkdir(targetPath, { recursive: true });
+  return targetPath;
+}
 
 export default defineEventHandler(async (event) => {
   try {
@@ -32,6 +44,8 @@ export default defineEventHandler(async (event) => {
     const deskripsi = getField("deskripsi");
     const totalAnggaran = getField("totalAnggaran");
     const statusRaw = getField("status") || "draft";
+    // Ambil kategori (misal dari form, default "Rab")
+    const category = getField("category") || "Rab"; // bisa "Rab" atau "Lpg"
 
     // Validasi wajib
     if (!nomorPengajuan)
@@ -93,18 +107,24 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // Tentukan folder berdasarkan status
-    const folderName = statusRaw === "draft" ? "draft" : "sedangDiAjukan";
-    const uploadBaseDir = await createFilePath("Rab", folderName);
+    // Tentukan subfolder berdasarkan status
+    const subFolder = statusRaw === "draft" ? "draft" : "sedangDiAjukan";
+    // Buat folder lengkap: uploads/{category}/{subFolder}
+    const uploadBaseDir = await createFilePath(category, subFolder);
 
     // Simpan file
     const originalName = fileField.filename || "file_rab";
     const safeName = originalName.replace(/[^a-zA-Z0-9.\-]/g, "_");
     const uniqueFilename = `${Date.now()}_${safeName}`;
-    const filePath = join(uploadBaseDir, uniqueFilename);
-    await writeFile(filePath, fileField.data); // binary, tanpa encoding
+    const absolutePath = join(uploadBaseDir, uniqueFilename);
+    await writeFile(absolutePath, fileField.data);
 
-    const filePathForDb = `/uploads/${folderName}/${uniqueFilename}`;
+    // Buat path relatif dari root proyek (tanpa leading slash) untuk disimpan di database
+    // Contoh: "uploads/Rab/sedangDiAjukan/123456_filename.docx"
+    const relativePath = relative(process.cwd(), absolutePath).replace(
+      /\\/g,
+      "/",
+    );
 
     const db = useDrizzle();
     const result = await db
@@ -114,7 +134,7 @@ export default defineEventHandler(async (event) => {
         usersId: String(users_id),
         judulKegiatan,
         deskripsi: deskripsi || null,
-        fileRabUrl: filePathForDb,
+        fileRabUrl: relativePath, // ← path yang benar dengan kategori
         totalAnggaran,
         status: statusRaw as StatusEnum,
         createdAt: new Date(),
@@ -129,7 +149,7 @@ export default defineEventHandler(async (event) => {
         id: result,
         nomorPengajuan,
         file: uniqueFilename,
-        folder: folderName,
+        folder: `${category}/${subFolder}`,
       },
     };
   } catch (error: any) {
