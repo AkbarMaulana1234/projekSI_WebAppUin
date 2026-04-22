@@ -99,7 +99,7 @@ export const usersRelations = relations(usersTable, (r) => ({
 // ============================================
 export const pengajuanRabRelations = relations(pengajuanRabTable, (r) => ({
   pengaju: r.one(usersTable, {
-    fields: [pengajuanRabTable.users_id],
+    fields: [pengajuanRabTable.usersId],
     references: [usersTable.id],
     relationName: "pengaju",
   }),

@@ -28,9 +28,10 @@ export default defineEventHandler(async (event) => {
       };
     }
     const payload: User = {
-      id: user.id,
+      id: String(user.id),
       role: user.role,
       username: user.fullName,
+      email: user.email,
       fakultas: user.fakultasId || null,
       ormawa: user.ormawaId || null,
       prodi: user.prodiId || null,

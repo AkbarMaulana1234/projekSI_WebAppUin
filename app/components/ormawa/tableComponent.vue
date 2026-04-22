@@ -69,50 +69,62 @@
         </thead>
         <tbody class="divide-y divide-slate-100">
           <tr
-            v-for="(rab, index) in rabList"
-            :key="index"
+            v-for="rab in tableStore.table"
+            :key="rab.id"
             class="hover:bg-slate-50/50 transition-colors group"
           >
             <td class="px-6 py-4 whitespace-nowrap">
-              <span class="font-mono text-sm font-medium text-[#3b5988]">{{
-                rab.id
-              }}</span>
+              <span class="font-mono text-sm font-medium text-[#3b5988]">
+                {{ rab.pengajuanRabTable.nomorPengajuan }}
+              </span>
             </td>
+
             <td class="px-6 py-4">
-              <div>
-                <p class="text-sm font-semibold text-slate-900">
-                  {{ rab.name }}
-                </p>
-                <p class="text-xs text-slate-500">{{ rab.department }}</p>
-              </div>
+              <p class="text-sm font-semibold text-slate-900">
+                {{ rab.pengajuanRabTable.judulKegiatan }}
+              </p>
+              <p class="text-xs text-slate-500">Pengaju: {{ rab.username }}</p>
             </td>
+
             <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-              {{ rab.date }}
+              {{
+                new Date(rab.pengajuanRabTable.createdAt).toLocaleDateString(
+                  "id-ID",
+                )
+              }}
             </td>
+
             <td class="px-6 py-4 whitespace-nowrap">
-              <span class="text-sm font-semibold text-slate-900"
-                >Rp {{ rab.amount }}</span
-              >
+              <span class="text-sm font-semibold text-slate-900">
+                Rp
+                {{
+                  Number(rab.pengajuanRabTable.totalAnggaran).toLocaleString(
+                    "id-ID",
+                  )
+                }}
+              </span>
             </td>
+
             <td class="px-6 py-4 whitespace-nowrap">
               <span
                 :class="[
                   'px-3 py-1 rounded-full text-xs font-medium border',
-                  rab.status === 'Selesai'
+                  rab.pengajuanRabTable.status === 'disetujui'
                     ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    : rab.status === 'Ditolak'
+                    : rab.pengajuanRabTable.status === 'ditolak_spi'
                       ? 'bg-red-50 text-red-700 border-red-200'
-                      : rab.status === 'Diproses'
+                      : rab.pengajuanRabTable.status.includes('waiting')
                         ? 'bg-amber-50 text-amber-700 border-amber-200'
                         : 'bg-blue-50 text-blue-700 border-blue-200',
                 ]"
               >
-                {{ rab.status }}
+                {{ rab.pengajuanRabTable.status }}
               </span>
             </td>
+
             <td class="px-6 py-4 whitespace-nowrap text-right">
               <button
-                @click="openDetail(rab)"
+                @click="openDetail(rab.pengajuanRabTable.id)"
                 class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#3b5988] bg-[#3b5988]/10 hover:bg-[#3b5988] hover:text-white transition-all group/btn"
               >
                 <span>Detail</span>
@@ -131,31 +143,31 @@
     <div
       class="px-6 py-4 border-t border-slate-200 flex items-center justify-between"
     >
-      <p class="text-sm text-slate-500">Menampilkan 1-5 dari 24 data</p>
+      <p class="text-sm text-slate-500">
+        Menampilkan {{ tableStore.offset + 1 }} -
+        {{ tableStore.offset + tableStore.table.length }}
+        dari {{ tableStore.total }} data
+      </p>
+
       <div class="flex items-center gap-2">
         <button
+          @click="tableStore.prevPage"
+          :disabled="tableStore.page === 1"
           class="p-2 rounded-lg border border-slate-200 text-slate-400 hover:text-slate-600 hover:border-slate-300 disabled:opacity-50"
-          disabled
         >
           <Icon name="heroicons:chevron-left" class="w-5 h-5" />
         </button>
+
+        <span class="px-4 py-2 rounded-lg bg-[#3b5988] text-white text-sm">
+          {{ tableStore.page }}
+        </span>
+
         <button
-          class="w-10 h-10 rounded-lg bg-[#3b5988] text-white font-medium text-sm"
-        >
-          1
-        </button>
-        <button
-          class="w-10 h-10 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium text-sm"
-        >
-          2
-        </button>
-        <button
-          class="w-10 h-10 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium text-sm"
-        >
-          3
-        </button>
-        <button
-          class="p-2 rounded-lg border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300"
+          @click="tableStore.nextPage"
+          :disabled="
+            tableStore.offset + tableStore.table.length >= tableStore.total
+          "
+          class="p-2 rounded-lg border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300 disabled:opacity-50"
         >
           <Icon name="heroicons:chevron-right" class="w-5 h-5" />
         </button>
@@ -163,76 +175,20 @@
     </div>
   </div>
 </template>
-<script setup>
+<script setup lang="ts">
+  import { useTableStore } from "~/stores/ormawa/table";
+  import { ref, onMounted } from "vue";
   const isSidebarOpen = ref(false);
   const isModalOpen = ref(false);
   const selectedRab = ref(null);
+  const tableStore = useTableStore();
 
-  const chartData = [
-    { month: "Mei", value: 40, count: 8 },
-    { month: "Jun", value: 65, count: 13 },
-    { month: "Jul", value: 45, count: 9 },
-    { month: "Agu", value: 80, count: 16 },
-    { month: "Sep", value: 55, count: 11 },
-    { month: "Okt", value: 70, count: 14 },
-  ];
-
-  const rabList = [
-    {
-      id: "RAB-2024-001",
-      name: "Seminar Nasional Teknologi",
-      department: "Himpunan Mahasiswa Teknik",
-      date: "15 Okt 2024",
-      amount: "25.000.000",
-      status: "Selesai",
-      pic: "Ahmad Rizky",
-      notes:
-        "Seminar telah berlangsung pada tanggal 10 Oktober 2024 dengan 500 peserta.",
-    },
-    {
-      id: "RAB-2024-002",
-      name: "Workshop Leadership",
-      department: "BEM Fakultas",
-      date: "18 Okt 2024",
-      amount: "15.500.000",
-      status: "Diproses",
-      pic: "Sarah Amalia",
-      notes: "Menunggu approval dari Dekanat.",
-    },
-    {
-      id: "RAB-2024-003",
-      name: "Festival Budaya Kampus",
-      department: "UKM Seni",
-      date: "20 Okt 2024",
-      amount: "45.000.000",
-      status: "Menunggu",
-      pic: "Budi Santoso",
-      notes: "Pengajuan awal, masih dalam review BEM.",
-    },
-    {
-      id: "RAB-2024-004",
-      name: "Kompetisi Robotik",
-      department: "Robotic Club",
-      date: "12 Okt 2024",
-      amount: "30.000.000",
-      status: "Ditolak",
-      pic: "Citra Lestari",
-      notes: "Anggaran melebihi batas maksimal untuk UKM.",
-    },
-    {
-      id: "RAB-2024-005",
-      name: "Bakti Sosial Desa",
-      department: "KSR PMI",
-      date: "22 Okt 2024",
-      amount: "8.000.000",
-      status: "Selesai",
-      pic: "Dedi Pratama",
-      notes: "Kegiatan sudah dilaksanakan tanggal 15-16 Oktober.",
-    },
-  ];
-
-  const openDetail = (rab) => {
-    selectedRab.value = rab;
-    isModalOpen.value = true;
+  onMounted(async () => {
+    await tableStore.getTable();
+    console.log(tableStore.table);
+  });
+  const openDetail = (rabID: number) => {
+    console.log(rabID);
+    return navigateTo(`/dashboard/ormawa/detailRab/${rabID}`);
   };
 </script>

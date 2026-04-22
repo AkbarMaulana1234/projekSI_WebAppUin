@@ -9,12 +9,6 @@
       >
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-4">
-            <button
-              @click="isSidebarOpen = !isSidebarOpen"
-              class="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
-            >
-              <Icon name="heroicons:bars-3" class="w-6 h-6" />
-            </button>
             <div>
               <h2 class="text-xl font-bold text-slate-900">Dashboard</h2>
               <p class="text-sm text-slate-500">
@@ -22,7 +16,6 @@
               </p>
             </div>
           </div>
-
           <div class="flex items-center gap-3">
             <button
               class="relative p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
@@ -63,10 +56,11 @@
                   class="flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full"
                 >
                   <Icon name="heroicons:arrow-trending-up" class="w-3 h-3" />
-                  +12%
                 </span>
               </div>
-              <h3 class="text-2xl font-bold text-slate-900 mb-1">24</h3>
+              <h3 class="text-2xl font-bold text-slate-900 mb-1">
+                {{ rabStore.summary?.total }}
+              </h3>
               <p class="text-sm text-slate-500">Total RAB Diajukan</p>
             </div>
           </div>
@@ -85,7 +79,9 @@
                 </div>
                 <span class="text-xs font-medium text-slate-400">Menunggu</span>
               </div>
-              <h3 class="text-2xl font-bold text-slate-900 mb-1">8</h3>
+              <h3 class="text-2xl font-bold text-slate-900 mb-1">
+                {{ rabStore.summary?.proses }}
+              </h3>
               <p class="text-sm text-slate-500">RAB Dalam Proses</p>
             </div>
           </div>
@@ -102,9 +98,11 @@
                 <div class="p-3 rounded-xl bg-red-500/10 text-red-600">
                   <Icon name="heroicons:x-circle" class="w-6 h-6" />
                 </div>
-                <span class="text-xs font-medium text-slate-400">Ditolak</span>
+                <span class="text-xs font-medium text-slate-400"> </span>
               </div>
-              <h3 class="text-2xl font-bold text-slate-900 mb-1">3</h3>
+              <h3 class="text-2xl font-bold text-slate-900 mb-1">
+                {{ rabStore.summary?.ditolak }}
+              </h3>
               <p class="text-sm text-slate-500">RAB Ditolak</p>
             </div>
           </div>
@@ -125,10 +123,11 @@
                   class="flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full"
                 >
                   <Icon name="heroicons:arrow-trending-up" class="w-3 h-3" />
-                  +5%
                 </span>
               </div>
-              <h3 class="text-2xl font-bold text-slate-900 mb-1">13</h3>
+              <h3 class="text-2xl font-bold text-slate-900 mb-1">
+                {{ rabStore.summary?.selesai }}
+              </h3>
               <p class="text-sm text-slate-500">RAB Selesai</p>
             </div>
           </div>
@@ -161,7 +160,7 @@
                 />
               </button>
 
-              <button
+              <!-- <button
                 class="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-slate-300 text-slate-600 hover:border-[#d1a82a] hover:text-[#d1a82a] hover:bg-[#d1a82a]/5 transition-all group"
               >
                 <div
@@ -173,7 +172,7 @@
                   <p class="font-semibold">Lihat Arsip</p>
                   <p class="text-xs text-slate-400">Akses dokumen lama</p>
                 </div>
-              </button>
+              </button> -->
             </div>
 
             <!-- Mini Calendar -->
@@ -207,11 +206,10 @@
               </div>
             </div>
           </div>
-
           <!-- Statistics Chart -->
         </div>
         <!-- RAB List -->
-        <table-component></table-component>
+        <ormawa-table-component></ormawa-table-component>
       </main>
     </div>
 
@@ -220,13 +218,18 @@
 </template>
 
 <script setup lang="ts">
-  import { ref } from "vue";
+  import { ref, onMounted } from "vue";
   import { useAuthStore } from "~/stores/auth";
+  import { useRabStore } from "~/stores/ormawa/RabCount";
   const authStore = useAuthStore();
+  const rabStore = useRabStore();
   const { user } = authStore;
   const nav = (path: string) => {
     return navigateTo(path);
   };
+  onMounted(async () => {
+    await rabStore.fetchRabSummary();
+  });
 </script>
 
 <style>

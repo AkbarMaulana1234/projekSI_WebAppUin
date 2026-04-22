@@ -21,7 +21,14 @@
           Dashboard
         </NuxtLink>
         <template v-if="authStore.user?.role === 'ormawa'">
+<<<<<<< HEAD
           <NuxtLink to="/ormawa/pengajuan" class="nav-link">
+=======
+          <NuxtLink
+            to="ormawa/pengajuanRab"
+            class="text-gray-700 hover:text-primary font-medium transition"
+          >
+>>>>>>> 9458af004babfb6e6b7647504b5f0220fb917bc4
             Pengajuan RAB
           </NuxtLink>
           <NuxtLink to="/ormawa/kegiatan" class="nav-link">
@@ -112,7 +119,7 @@
           Dashboard
         </NuxtLink>
         <template v-if="authStore.user?.role === 'ormawa'">
-          <NuxtLink to="/ormawa/pengajuan" class="mobile-nav-link" @click="mobileMenuOpen = false">
+          <NuxtLink to="/ormawa/pengajuanRab" class="mobile-nav-link" @click="mobileMenuOpen = false">
             Pengajuan RAB
           </NuxtLink>
           <NuxtLink to="/ormawa/kegiatan" class="mobile-nav-link" @click="mobileMenuOpen = false">

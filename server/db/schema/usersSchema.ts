@@ -5,13 +5,14 @@ import {
   boolean,
   timestamp,
   mysqlEnum,
+  int,
 } from "drizzle-orm/mysql-core";
 import { programStudiTable } from "./programStudiSchema";
 import { ormawaTable } from "./ormawaSchema";
 import { fakultasTable } from "./fakultasSchema";
 
 export const usersTable = mysqlTable("users", {
-  id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
+  id: int("id").primaryKey().autoincrement(),
   email: varchar("email", { length: 255 }).unique().notNull(),
   users_id: varchar("users_id", { length: 255 }).unique().notNull(),
   passwordHash: varchar("password_hash", { length: 255 }).notNull(),

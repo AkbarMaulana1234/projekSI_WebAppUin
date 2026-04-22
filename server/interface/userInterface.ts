@@ -1,6 +1,7 @@
 export interface User {
-  id: number;
+  id: string;
   username: string;
+  email: string;
   role: "ormawa" | "kaprodi" | "spi" | "ppk" | null;
   fakultas: number | null;
   prodi: number | null;

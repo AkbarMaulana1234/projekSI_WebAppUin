@@ -1,15 +1,28 @@
 import { defineEventHandler, readMultipartFormData, createError } from "h3";
 import { writeFile, mkdir } from "node:fs/promises";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { existsSync } from "node:fs";
-import { useDrizzle } from "../../db/index";
-import { pengajuanRabTable } from "../../db/schema/pengajuanRabSchema";
-import { log } from "node:console";
-import { createFilePath } from "~~/server/utils/CreateFilePath";
+import { useDrizzle } from "../../../db/index";
+import {
+  pengajuanRabTable,
+  statusEnum,
+  type StatusEnum,
+} from "../../../db/schema/pengajuanRabSchema";
+
+// Asumsi fungsi createFilePath sudah didefinisikan di tempat lain (misal utils)
+// Jika belum, kita tulis ulang di sini untuk kelengkapan
+async function createFilePath(
+  category: string,
+  status: string,
+): Promise<string> {
+  const rootPath = join(process.cwd(), "uploads");
+  const targetPath = join(rootPath, category, status);
+  await mkdir(targetPath, { recursive: true });
+  return targetPath;
+}
 
 export default defineEventHandler(async (event) => {
   try {
-    // 1. Baca multipart form data
     const formData = await readMultipartFormData(event);
     if (!formData || formData.length === 0) {
       throw createError({
@@ -20,42 +33,51 @@ export default defineEventHandler(async (event) => {
 
     const getField = (name: string): string => {
       const field = formData.find((f) => f.name === name);
-      if (!field || !field.data) return "";
-      return Buffer.from(field.data).toString("utf-8");
+      return field && field.data
+        ? Buffer.from(field.data).toString("utf-8")
+        : "";
     };
 
-    // 2. Ekstrak field teks
-    const nomor_pengajuan = getField("nomor_pengajuan");
-    const users_id_str = getField("users_id");
-    const judul_kegiatan = getField("judul_kegiatan");
+    const nomorPengajuan = getField("nomorPengajuan");
+    const usersId = getField("usersId");
+    const judulKegiatan = getField("judulKegiatan");
     const deskripsi = getField("deskripsi");
-    const total_anggaran = getField("total_anggaran");
-    const status = getField("status") || "draft";
+    const totalAnggaran = getField("totalAnggaran");
+    const statusRaw = getField("status") || "draft";
+    // Ambil kategori (misal dari form, default "Rab")
+    const category = getField("category") || "Rab"; // bisa "Rab" atau "Lpg"
 
-    // 3. Validasi field wajib
-    if (!nomor_pengajuan)
+    // Validasi wajib
+    if (!nomorPengajuan)
       throw createError({
         statusCode: 400,
         message: "Nomor pengajuan wajib diisi",
       });
-    if (!users_id_str)
+    if (!usersId)
       throw createError({ statusCode: 400, message: "User ID wajib diisi" });
-    if (!judul_kegiatan)
+    if (!judulKegiatan)
       throw createError({
         statusCode: 400,
         message: "Judul kegiatan wajib diisi",
       });
-    if (!total_anggaran)
+    if (!totalAnggaran)
       throw createError({
         statusCode: 400,
         message: "Total anggaran wajib diisi",
       });
 
-    const users_id = parseInt(users_id_str);
+    // Validasi status
+    if (!statusEnum.includes(statusRaw as StatusEnum)) {
+      throw createError({
+        statusCode: 400,
+        message: `Status tidak valid. Pilihan: ${statusEnum.join(", ")}`,
+      });
+    }
+    const users_id = parseInt(usersId);
     if (isNaN(users_id))
       throw createError({ statusCode: 400, message: "User ID tidak valid" });
 
-    // 4. Ekstrak file
+    // File
     const fileField = formData.find((f) => f.name === "file_rab");
     if (!fileField || !fileField.data || fileField.data.length === 0) {
       throw createError({
@@ -64,7 +86,7 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    // Validasi tipe MIME (PDF, Word, Excel)
+    // Validasi tipe & ukuran
     const allowedMimes = [
       "application/pdf",
       "application/msword",
@@ -72,68 +94,67 @@ export default defineEventHandler(async (event) => {
       "application/vnd.ms-excel",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     ];
-    const fileMime = fileField.type || "";
-    if (!allowedMimes.includes(fileMime)) {
+    if (!allowedMimes.includes(fileField.type || "")) {
       throw createError({
         statusCode: 400,
         message: "Tipe file tidak diizinkan. Hanya PDF, Word, atau Excel",
       });
     }
-
-    // Batasi ukuran (10MB)
-    const maxSize = 10 * 1024 * 1024;
-    if (fileField.data.length > maxSize) {
+    if (fileField.data.length > 10 * 1024 * 1024) {
       throw createError({
         statusCode: 400,
         message: "Ukuran file maksimal 10MB",
       });
     }
 
-    // 5. Simpan file ke disk
-    const path = "Rab/sedangDiAjukan";
-    const newPath = await createFilePath("Rab", "sedangDiAjukan");
+    // Tentukan subfolder berdasarkan status
+    const subFolder = statusRaw === "draft" ? "draft" : "sedangDiAjukan";
+    // Buat folder lengkap: uploads/{category}/{subFolder}
+    const uploadBaseDir = await createFilePath(category, subFolder);
 
-    // Sanitasi nama file
+    // Simpan file
     const originalName = fileField.filename || "file_rab";
     const safeName = originalName.replace(/[^a-zA-Z0-9.\-]/g, "_");
     const uniqueFilename = `${Date.now()}_${safeName}`;
-    const filePath = join(newPath, uniqueFilename);
-    await writeFile(filePath, fileField.data);
+    const absolutePath = join(uploadBaseDir, uniqueFilename);
+    await writeFile(absolutePath, fileField.data);
 
-    // Path yang disimpan ke database (relatif dari root)
-    const filePathForDb = `uploads/${uniqueFilename}`;
+    // Buat path relatif dari root proyek (tanpa leading slash) untuk disimpan di database
+    // Contoh: "uploads/Rab/sedangDiAjukan/123456_filename.docx"
+    const relativePath = relative(process.cwd(), absolutePath).replace(
+      /\\/g,
+      "/",
+    );
 
-    // 6. Insert ke database menggunakan Drizzle
     const db = useDrizzle();
     const result = await db
       .insert(pengajuanRabTable)
       .values({
-        nomor_pengajuan,
-        users_id,
-        judul_kegiatan,
+        nomorPengajuan,
+        usersId: String(users_id),
+        judulKegiatan,
         deskripsi: deskripsi || null,
-        file_rab: filePathForDb,
-        total_anggaran,
-        status,
-        created_at: new Date(),
-        updated_at: new Date(),
+        fileRabUrl: relativePath, // ← path yang benar dengan kategori
+        totalAnggaran,
+        status: statusRaw as StatusEnum,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .$returningId();
-    // 7. Return response sukses
+
     return {
       success: true,
       message: "Pengajuan RAB berhasil disimpan",
       data: {
-        id: result, // atau result[0].insertId tergantung driver
-        nomor_pengajuan,
+        id: result,
+        nomorPengajuan,
         file: uniqueFilename,
+        folder: `${category}/${subFolder}`,
       },
     };
   } catch (error: any) {
     console.error("Error upload RAB:", error);
-    // Jika error sudah dari createError, lempar ulang
     if (error.statusCode) throw error;
-    // Error lain jadi 500
     throw createError({
       statusCode: 500,
       message: "Terjadi kesalahan server: " + error.message,

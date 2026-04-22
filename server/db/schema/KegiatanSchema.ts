@@ -1,6 +1,7 @@
 import {
   mysqlTable,
   bigint,
+  int,
   varchar,
   date,
   timestamp,
@@ -9,7 +10,7 @@ import { pengajuanRabTable } from "./pengajuanRabSchema";
 
 export const kegiatanTable = mysqlTable("kegiatan", {
   id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
-  pengajuanRabId: bigint("pengajuan_rab_id", { mode: "number" })
+  pengajuanRabId: int("pengajuan_rab_id")
     .notNull()
     .references(() => pengajuanRabTable.id, { onDelete: "cascade" }),
   statusKegiatan: varchar("status_kegiatan", { length: 50 }).default(
