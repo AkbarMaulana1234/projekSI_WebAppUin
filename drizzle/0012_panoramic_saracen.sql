@@ -1,0 +1,2 @@
+ALTER TABLE `pengajuan_rab` MODIFY COLUMN `status` enum('draft','waiting_kaprodi','revisi_kaprodi','waiting_ppk','revisi_ppk','waiting_spi','ditolak_spi','disetujui','selesai_spi') DEFAULT 'draft';--> statement-breakpoint
+ALTER TABLE `approval_log` DROP COLUMN `role_actor`;

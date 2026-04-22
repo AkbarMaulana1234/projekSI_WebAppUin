@@ -23,36 +23,18 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 403, message: "Akses ditolak" });
   }
 
-  // Langsung gunakan path dari database tanpa modifikasi (sudah absolut)
   const filePath = path.resolve(process.cwd(), rab.fileRabUrl.trim());
   const relativePath = rab.fileRabUrl.trim();
-  console.log("=== DETAIL PATH ===");
-  console.log("cwd:", process.cwd());
-  console.log("relativePath dari DB:", JSON.stringify(relativePath));
-  console.log("filePath hasil resolve:", filePath);
 
-  // Cek parent directory
   const parentDir = path.dirname(filePath);
-  console.log("Parent directory:", parentDir);
 
-  // Baca isi parent directory
   try {
     const files = fs.readdirSync(parentDir);
-    console.log("Isi parent directory:", files);
     const targetFile = path.basename(filePath);
-    console.log("File yang dicari:", targetFile);
-    console.log("Apakah ada dalam daftar?", files.includes(targetFile));
   } catch (err) {
     console.error("Gagal baca parent directory:", err.message);
   }
 
-  // Cek akses file dengan F_OK (hanya cek existence)
-  try {
-    fs.accessSync(filePath, fs.constants.F_OK);
-    console.log("✅ File ada (F_OK)");
-  } catch (err) {
-    console.log("❌ File tidak ada (F_OK):", err.message);
-  }
   if (!fs.existsSync(filePath)) {
     throw createError({
       statusCode: 404,
