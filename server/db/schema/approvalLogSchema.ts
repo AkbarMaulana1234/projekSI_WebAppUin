@@ -17,8 +17,7 @@ export const approvalLogTable = mysqlTable("approval_log", {
   actorId: bigint("actor_id", { mode: "number" })
     .notNull()
     .references(() => usersTable.id, { onDelete: "restrict" }),
-  roleActor: varchar("role_actor", { length: 50 }).notNull(),
-  action: varchar("action", { length: 50 }).notNull(), // setuju, revisi, tolak
+  action: varchar("action", { length: 50 }).notNull(),
   catatanRevisi: text("catatan_revisi"),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
 });

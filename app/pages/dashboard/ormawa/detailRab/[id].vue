@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
-    <!-- Loading State -->
+    <!-- Loading -->
     <div v-if="loading" class="flex justify-center items-center h-64">
       <div class="text-center">
         <Icon
@@ -11,7 +11,7 @@
       </div>
     </div>
 
-    <!-- Error State -->
+    <!-- Error -->
     <div v-else-if="error" class="max-w-6xl mx-auto">
       <div class="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
         <Icon
@@ -29,9 +29,9 @@
       </div>
     </div>
 
-    <!-- Main Content -->
+    <!-- Konten Utama -->
     <div v-else-if="rabData" class="max-w-6xl mx-auto space-y-6">
-      <!-- Header Navigation -->
+      <!-- Header -->
       <div class="flex items-center justify-between">
         <button
           @click="goBack"
@@ -40,7 +40,6 @@
           <Icon name="heroicons:arrow-left" class="w-5 h-5" />
           <span class="font-medium">Kembali ke Dashboard</span>
         </button>
-
         <div class="flex items-center gap-3">
           <span class="text-sm text-slate-500"
             >ID: {{ rabData.nomorPengajuan }}</span
@@ -63,9 +62,9 @@
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Left Column -->
+        <!-- Kolom Kiri (2/3) -->
         <div class="lg:col-span-2 space-y-6">
-          <!-- Title Card -->
+          <!-- Judul & Info -->
           <div
             class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8"
           >
@@ -120,7 +119,7 @@
             </div>
           </div>
 
-          <!-- Timeline Progress -->
+          <!-- Progress Timeline -->
           <div
             class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8"
           >
@@ -139,23 +138,32 @@
                   v-for="(step, index) in timelineSteps"
                   :key="index"
                   :class="[
-                    'relative flex gap-4',
-                    step.isActive ? 'opacity-100' : 'opacity-60',
+                    'relative flex gap-4 transition-opacity duration-300',
+                    step.isActive || step.isCompleted
+                      ? 'opacity-100'
+                      : 'opacity-50',
                   ]"
                 >
                   <div
                     :class="[
-                      'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 border-2',
+                      'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 border-2 transition-all duration-300',
                       step.isCompleted
                         ? 'bg-emerald-500 border-emerald-500 text-white'
-                        : step.isActive
-                          ? 'bg-[#3b5988] border-[#3b5988] text-white'
-                          : 'bg-white border-slate-300 text-slate-400',
+                        : step.isError
+                          ? 'bg-amber-500 border-amber-500 text-white animate-pulse'
+                          : step.isActive
+                            ? 'bg-[#3b5988] border-[#3b5988] text-white'
+                            : 'bg-white border-slate-300 text-slate-400',
                     ]"
                   >
                     <Icon
                       v-if="step.isCompleted"
                       name="heroicons:check"
+                      class="w-5 h-5"
+                    />
+                    <Icon
+                      v-else-if="step.isError"
+                      name="heroicons:exclamation-triangle"
                       class="w-5 h-5"
                     />
                     <span v-else class="text-xs font-bold">{{
@@ -172,9 +180,11 @@
                       >
                         {{ step.title }}
                       </h4>
-                      <span v-if="step.date" class="text-xs text-slate-500">{{
-                        step.date
-                      }}</span>
+                      <span
+                        v-if="step.date"
+                        class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded"
+                        >{{ step.date }}</span
+                      >
                     </div>
                     <p class="text-sm text-slate-600">{{ step.description }}</p>
                     <div v-if="step.isActive" class="mt-2">
@@ -199,7 +209,7 @@
             </div>
           </div>
 
-          <!-- Document Viewer dengan Preview -->
+          <!-- Dokumen RAB (Preview & Info) -->
           <div
             class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"
           >
@@ -248,7 +258,6 @@
                   class="w-full h-[600px] rounded-xl border border-slate-200"
                   frameborder="0"
                 ></iframe>
-
                 <div v-else class="text-center py-12">
                   <Icon
                     name="heroicons:document"
@@ -264,7 +273,6 @@
                     Download File
                   </button>
                 </div>
-                <!-- Tombol aksi -->
                 <div class="flex justify-center gap-3 mt-4">
                   <button
                     @click="openDocument"
@@ -310,7 +318,6 @@
                 </button>
               </div>
             </div>
-            <!-- Info Mode -->
             <div v-else class="p-6">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
@@ -375,7 +382,7 @@
             </div>
           </div>
 
-          <!-- Comments Section -->
+          <!-- Riwayat Approval Log (menggunakan store) -->
           <div
             class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8"
           >
@@ -383,27 +390,27 @@
               class="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2"
             >
               <Icon
-                name="heroicons:chat-bubble-left-right"
+                name="heroicons:clipboard-document-list"
                 class="w-5 h-5 text-[#d1a82a]"
               />
-              Riwayat Komentar & Revisi
+              Riwayat Persetujuan & Revisi
               <span
                 class="ml-2 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs"
               >
-                {{ comments.length }}
+                {{ approvalLogs.length }}
               </span>
             </h3>
             <div class="space-y-4">
               <div
-                v-for="(comment, index) in comments"
-                :key="index"
+                v-for="log in approvalLogs"
+                :key="log.id"
                 :class="[
                   'p-4 rounded-xl border-l-4',
-                  comment.type === 'revisi'
+                  log.action === 'revisi'
                     ? 'bg-amber-50 border-amber-400'
-                    : comment.type === 'reject'
+                    : log.action === 'tolak'
                       ? 'bg-red-50 border-red-400'
-                      : comment.type === 'approve'
+                      : log.action === 'setuju'
                         ? 'bg-emerald-50 border-emerald-400'
                         : 'bg-slate-50 border-slate-300',
                 ]"
@@ -413,103 +420,68 @@
                     <div
                       :class="[
                         'w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm',
-                        comment.type === 'revisi'
+                        log.action === 'revisi'
                           ? 'bg-amber-500'
-                          : comment.type === 'reject'
+                          : log.action === 'tolak'
                             ? 'bg-red-500'
-                            : comment.type === 'approve'
+                            : log.action === 'setuju'
                               ? 'bg-emerald-500'
                               : 'bg-[#3b5988]',
                       ]"
                     >
-                      {{ comment.author.charAt(0) }}
+                      {{ log.actor?.fullname?.charAt(0) || "?" }}
                     </div>
                     <div>
                       <p class="font-semibold text-slate-900">
-                        {{ comment.author }}
+                        {{ log.actor?.fullname || "Unknown" }}
                       </p>
                       <p class="text-xs text-slate-500">
-                        {{ comment.role }} • {{ comment.date }}
+                        {{ log.actor?.role || "-" }} •
+                        {{ formatDate(log.approvalLog.createdAt) }}
                       </p>
                     </div>
                   </div>
                   <span
                     :class="[
                       'px-2 py-1 rounded-lg text-xs font-medium',
-                      comment.type === 'revisi'
+                      log.approvalLog.action === 'revisi'
                         ? 'bg-amber-100 text-amber-700'
-                        : comment.type === 'reject'
+                        : log.approvalLog.action === 'tolak'
                           ? 'bg-red-100 text-red-700'
-                          : comment.type === 'approve'
+                          : log.approvalLog.action === 'setuju'
                             ? 'bg-emerald-100 text-emerald-700'
                             : 'bg-slate-100 text-slate-600',
                     ]"
                   >
                     {{
-                      comment.type === "revisi"
+                      log.approvalLog.action === "revisi"
                         ? "Perlu Revisi"
-                        : comment.type === "reject"
+                        : log.approvalLog.action === "tolak"
                           ? "Ditolak"
-                          : comment.type === "approve"
+                          : log.approvalLog.action === "setuju"
                             ? "Disetujui"
-                            : "Komentar"
+                            : "Catatan"
                     }}
                   </span>
                 </div>
                 <p class="text-sm text-slate-700 leading-relaxed ml-13 pl-13">
-                  {{ comment.message }}
+                  {{ log.approvalLog?.catatanRevisi || "Tidak ada catatan" }}
                 </p>
-                <div v-if="comment.attachment" class="mt-3 ml-13">
-                  <a
-                    href="#"
-                    class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-sm text-slate-600 hover:border-[#3b5988] hover:text-[#3b5988] transition-all"
-                  >
-                    <Icon name="heroicons:paper-clip" class="w-4 h-4" />
-                    {{ comment.attachment }}
-                  </a>
-                </div>
               </div>
-              <!-- Input komentar -->
               <div
-                v-if="canAddComment"
-                class="mt-6 pt-6 border-t border-slate-100"
+                v-if="approvalLogs.length === 0 && !loadingLogs"
+                class="text-center py-8 text-slate-500"
               >
-                <div class="flex gap-3">
-                  <div
-                    class="w-10 h-10 rounded-full bg-[#3b5988] flex items-center justify-center text-white font-bold flex-shrink-0"
-                  >
-                    {{ ormawaData?.nama?.charAt(0) || "U" }}
-                  </div>
-                  <div class="flex-1">
-                    <textarea
-                      v-model="newComment"
-                      rows="3"
-                      placeholder="Tambahkan komentar atau respon revisi..."
-                      class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-[#3b5988] focus:ring-2 focus:ring-[#3b5988]/20 outline-none resize-none"
-                    ></textarea>
-                    <div class="flex justify-between items-center mt-2">
-                      <button
-                        class="text-sm text-slate-500 hover:text-[#3b5988] flex items-center gap-1"
-                      >
-                        <Icon name="heroicons:paper-clip" class="w-4 h-4" />
-                        Lampirkan file
-                      </button>
-                      <button
-                        @click="addComment"
-                        :disabled="!newComment.trim()"
-                        class="px-4 py-2 rounded-lg bg-[#3b5988] text-white text-sm font-medium hover:bg-[#2d4570] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                      >
-                        Kirim Komentar
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                Belum ada riwayat persetujuan.
+              </div>
+              <div v-if="loadingLogs" class="text-center py-8 text-slate-500">
+                Memuat riwayat...
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Right Column: Summary -->
+        <!-- Kolom Kanan (1/3) Ringkasan -->
         <div class="space-y-6">
           <div
             class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-20"
@@ -532,7 +504,7 @@
                 >
                   <span class="text-sm text-slate-600">Pengaju</span>
                   <span class="font-medium text-sm text-slate-900">{{
-                    ormawaData?.nama || "-"
+                    ormawaData?.fullName || "-"
                   }}</span>
                 </div>
                 <div
@@ -555,9 +527,8 @@
                   <span class="text-sm text-slate-600">Status Saat Ini</span>
                   <span
                     :class="['font-medium', getStatusTextColor(rabData.status)]"
+                    >{{ formatStatus(rabData.status) }}</span
                   >
-                    {{ formatStatus(rabData.status) }}
-                  </span>
                 </div>
               </div>
             </div>
@@ -603,7 +574,7 @@
       </div>
     </div>
 
-    <!-- Modal Ajukan -->
+    <!-- Modal Konfirmasi Ajukan -->
     <div
       v-if="showAjukanModal"
       class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
@@ -633,7 +604,7 @@
       </div>
     </div>
 
-    <!-- Modal Edit Dokumen -->
+    <!-- Modal Edit Upload File -->
     <div
       v-if="showEditModal"
       class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
@@ -721,30 +692,34 @@
   import { ref, computed, onMounted, onBeforeUnmount } from "vue";
   import { useRabStore } from "~/stores/ormawa/DetailRab";
   import { useAuthStore } from "~/stores/auth";
+  import { useApproveLog } from "~/stores/ormawa/approveLogRab";
+  import { storeToRefs } from "pinia";
 
   const route = useRoute();
   const rabStore = useRabStore();
   const authStore = useAuthStore();
+  const approveLogStore = useApproveLog();
 
-  // State dari store
+  // State dari store RAB
   const rabData = computed(() => rabStore.detail);
   const loading = computed(() => rabStore.loading);
   const error = computed(() => rabStore.error);
   const fileObjectUrl = computed(() => rabStore.fileObjectUrl);
 
-  // UI state
+  // State dari store Approval Log
+  const { logs: approvalLogs, loading: loadingLogs } =
+    storeToRefs(approveLogStore);
+
+  // UI state lokal
   const viewMode = ref("preview");
   const showAjukanModal = ref(false);
   const showEditModal = ref(false);
   const showDeleteModal = ref(false);
   const isSubmitting = ref(false);
   const isEditing = ref(false);
-  const newComment = ref("");
   const editFile = ref(null);
   const editNote = ref("");
 
-  // Data dummy comments
-  const comments = ref([]);
   const ormawaData = computed(() => authStore.user);
 
   // Informasi file dari blob
@@ -765,108 +740,36 @@
     return { name: null, size: null, type: null };
   });
 
-  // Helper untuk menentukan tipe file
   const isPdf = computed(() => {
     const type = fileInfo.value.type;
     const url = rabData.value?.fileRabUrl || "";
     return type === "application/pdf" || url.toLowerCase().endsWith(".pdf");
   });
 
-  const isOffice = computed(() => {
-    const type = fileInfo.value.type;
-    const url = rabData.value?.fileRabUrl || "";
-    return (
-      type.includes("word") ||
-      type.includes("document") ||
-      type.includes("excel") ||
-      type.includes("sheet") ||
-      /\.(doc|docx|xls|xlsx)$/i.test(url)
-    );
-  });
-
-  // Helper format bytes
-  function formatBytes(bytes) {
+  // Helper functions
+  const formatBytes = (bytes) => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  }
+  };
 
-  // Timeline steps
-  const timelineSteps = computed(() => {
-    const status = rabData.value?.status;
-    const steps = [
-      {
-        title: "Pengajuan Draft",
-        description: "RAB dibuat dan disimpan sebagai draft",
-        date: formatDate(rabData.value?.createdAt),
-        isCompleted: true,
-        isActive: false,
-      },
-      {
-        title: "Review Kaprodi",
-        description: "Menunggu review dan approval dari Kaprodi",
-        date: null,
-        isCompleted: false,
-        isActive: false,
-      },
-      {
-        title: "Review PPK",
-        description: "Verifikasi anggaran oleh Pusat Pengelolaan Keuangan",
-        date: null,
-        isCompleted: false,
-        isActive: false,
-      },
-      {
-        title: "Review SPI",
-        description: "Audit dan pengawasan oleh Satuan Pengawasan Internal",
-        date: null,
-        isCompleted: false,
-        isActive: false,
-      },
-      {
-        title: "Pencairan Dana",
-        description: "Anggaran disetujui dan siap dicairkan",
-        date: null,
-        isCompleted: false,
-        isActive: false,
-      },
-    ];
-    const statusOrder = [
-      "draft",
-      "waiting_kaprodi",
-      "revisi_kaprodi",
-      "waiting_ppk",
-      "revisi_ppk",
-      "waiting_spi",
-      "ditolak_spi",
-      "disetujui",
-      "selesai_spi",
-    ];
-    const currentIndex = statusOrder.indexOf(status);
-    steps.forEach((step, idx) => {
-      if (idx < currentIndex) step.isCompleted = true;
-      if (idx === currentIndex) step.isActive = true;
+  const formatDate = (dateString) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return date.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
     });
-    if (status === "revisi_kaprodi") steps[1].isActive = true;
-    if (status === "revisi_ppk") steps[2].isActive = true;
-    if (status === "ditolak_spi") steps[3].isActive = true;
-    return steps;
-  });
+  };
 
-  const canAddComment = computed(() => {
-    const status = rabData.value?.status;
-    return [
-      "revisi_kaprodi",
-      "revisi_ppk",
-      "waiting_kaprodi",
-      "waiting_ppk",
-      "waiting_spi",
-    ].includes(status);
-  });
+  const formatCurrency = (value) => {
+    if (!value) return "0";
+    return new Intl.NumberFormat("id-ID").format(parseFloat(value));
+  };
 
-  // Helper functions
   const formatStatus = (status) => {
     const map = {
       draft: "Draft",
@@ -877,7 +780,7 @@
       waiting_spi: "Menunggu SPI",
       ditolak_spi: "Ditolak SPI",
       disetujui: "Disetujui",
-      selesai_spi: "Selesai",
+      selesai: "Selesai",
     };
     return map[status] || status;
   };
@@ -892,7 +795,7 @@
       waiting_spi: "bg-purple-50 text-purple-700 border-purple-200",
       ditolak_spi: "bg-red-50 text-red-700 border-red-200",
       disetujui: "bg-emerald-50 text-emerald-700 border-emerald-200",
-      selesai_spi: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      selesai: "bg-emerald-50 text-emerald-700 border-emerald-200",
     };
     return colors[status] || "bg-slate-100 text-slate-700";
   };
@@ -907,7 +810,7 @@
       waiting_spi: "bg-purple-500",
       ditolak_spi: "bg-red-500",
       disetujui: "bg-emerald-500",
-      selesai_spi: "bg-emerald-500",
+      selesai: "bg-emerald-500",
     };
     return dots[status] || "bg-slate-400";
   };
@@ -922,31 +825,75 @@
       waiting_spi: "text-purple-600",
       ditolak_spi: "text-red-600",
       disetujui: "text-emerald-600",
-      selesai_spi: "text-emerald-600",
+      selesai: "text-emerald-600",
     };
     return colors[status] || "text-slate-600";
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  // Timeline steps
+  const timelineSteps = computed(() => {
+    const status = rabData.value?.status || "draft";
+    const statusToStepMap = {
+      draft: 0,
+      waiting_kaprodi: 1,
+      revisi_kaprodi: 1,
+      waiting_ppk: 2,
+      revisi_ppk: 2,
+      waiting_spi: 3,
+      ditolak_spi: 3,
+      disetujui: 4,
+      selesai: 4,
+    };
+    const currentStepIndex = statusToStepMap[status] ?? 0;
 
-  const formatCurrency = (value) => {
-    if (!value) return "0";
-    return new Intl.NumberFormat("id-ID").format(parseFloat(value));
-  };
+    const steps = [
+      {
+        title: "Pengajuan Draft",
+        description: "RAB dibuat dan disimpan sebagai draft",
+        date: formatDate(rabData.value?.createdAt),
+      },
+      {
+        title: "Review Kaprodi",
+        description: "Verifikasi oleh Ketua Program Studi",
+        date: currentStepIndex > 1 ? "Selesai" : null,
+      },
+      {
+        title: "Review PPK",
+        description: "Verifikasi anggaran oleh Pejabat Pembuat Komitmen",
+        date: currentStepIndex > 2 ? "Selesai" : null,
+      },
+      {
+        title: "Review SPI",
+        description: "Audit oleh Satuan Pengawasan Internal",
+        date: status === "disetujui" || status === "selesai" ? "Selesai" : null,
+      },
+      {
+        title: "Pencairan Dana",
+        description: "Anggaran disetujui dan siap dicairkan",
+        date: status === "selesai" ? "Selesai" : null,
+      },
+    ];
+
+    return steps.map((step, index) => {
+      const isRevisi = status.includes("revisi") || status.includes("ditolak");
+      return {
+        ...step,
+        isActive: index === currentStepIndex,
+        isCompleted:
+          index < currentStepIndex || (index === 4 && status === "selesai"),
+        isError: index === currentStepIndex && isRevisi,
+      };
+    });
+  });
 
   // Actions
   const goBack = () => navigateTo("/dashboard");
-  const reloadData = () => rabStore.fetchFullRabData(route.params.id);
+
+  const reloadData = async () => {
+    const id = route.params.id;
+    await rabStore.fetchFullRabData(id);
+    await approveLogStore.fetchApprovalLogs(id);
+  };
 
   const openDocument = () => {
     if (fileObjectUrl.value) {
@@ -970,11 +917,12 @@
   const submitRab = async () => {
     isSubmitting.value = true;
     try {
-      await $fetch("/api/ormawa/Rab/submit", {
+      await $fetch("/api/ormawa/Rab/PengajuanDraftRab", {
         method: "POST",
         body: { rabId: rabData.value.id },
       });
       await rabStore.fetchFullRabData(route.params.id);
+      await approveLogStore.fetchApprovalLogs(route.params.id);
       showAjukanModal.value = false;
       alert("RAB berhasil diajukan");
     } catch (err) {
@@ -1003,6 +951,7 @@
         body: formData,
       });
       await rabStore.fetchFullRabData(route.params.id);
+      await approveLogStore.fetchApprovalLogs(route.params.id);
       showEditModal.value = false;
       editFile.value = null;
       editNote.value = "";
@@ -1012,21 +961,6 @@
       alert("Gagal menyimpan revisi");
     } finally {
       isEditing.value = false;
-    }
-  };
-
-  const addComment = async () => {
-    if (!newComment.value.trim()) return;
-    try {
-      await $fetch("/api/ormawa/Rab/comment", {
-        method: "POST",
-        body: { rabId: rabData.value.id, message: newComment.value },
-      });
-      newComment.value = "";
-      alert("Komentar terkirim");
-    } catch (err) {
-      console.error(err);
-      alert("Gagal mengirim komentar");
     }
   };
 
@@ -1041,13 +975,17 @@
   };
 
   // Lifecycle
-  onMounted(() => {
+  onMounted(async () => {
     const id = route.params.id;
-    if (id) rabStore.fetchFullRabData(id);
+    if (id) {
+      await rabStore.fetchFullRabData(id);
+      await approveLogStore.fetchApprovalLogs(id);
+    }
   });
 
   onBeforeUnmount(() => {
     rabStore.cleanupFileUrl();
+    approveLogStore.clearLogs();
   });
 </script>
 
@@ -1068,24 +1006,19 @@
       transform: translateY(0);
     }
   }
-
   .animate-fadeIn {
     animation: fadeIn 0.3s ease-out;
   }
-
   ::-webkit-scrollbar {
     width: 8px;
   }
-
   ::-webkit-scrollbar-track {
     background: #f1f5f9;
   }
-
   ::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 4px;
   }
-
   ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
   }
