@@ -237,17 +237,6 @@
                 >
                   Preview
                 </button>
-                <button
-                  @click="viewMode = 'info'"
-                  :class="[
-                    'px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
-                    viewMode === 'info'
-                      ? 'bg-[#3b5988] text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
-                  ]"
-                >
-                  Info File
-                </button>
               </div>
             </div>
             <div v-if="viewMode === 'preview'" class="p-6">
@@ -281,13 +270,6 @@
                     <Icon name="heroicons:eye" class="w-5 h-5" />
                     Lihat di Tab Baru
                   </button>
-                  <button
-                    @click="downloadDocument"
-                    class="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-[#3b5988] text-[#3b5988] font-medium hover:bg-[#3b5988]/5 transition-all"
-                  >
-                    <Icon name="heroicons:arrow-down-tray" class="w-5 h-5" />
-                    Download
-                  </button>
                 </div>
               </div>
               <div
@@ -316,68 +298,6 @@
                   <Icon name="heroicons:arrow-down-tray" class="w-5 h-5" />
                   Download File
                 </button>
-              </div>
-            </div>
-            <div v-else class="p-6">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                  <p
-                    class="text-xs text-slate-500 uppercase tracking-wider mb-1"
-                  >
-                    Nama File
-                  </p>
-                  <p class="font-medium text-slate-900 truncate">
-                    {{ fileInfo.name || "Tidak tersedia" }}
-                  </p>
-                </div>
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                  <p
-                    class="text-xs text-slate-500 uppercase tracking-wider mb-1"
-                  >
-                    Ukuran File
-                  </p>
-                  <p class="font-medium text-slate-900">
-                    {{ fileInfo.size || "-" }}
-                  </p>
-                </div>
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                  <p
-                    class="text-xs text-slate-500 uppercase tracking-wider mb-1"
-                  >
-                    Format
-                  </p>
-                  <p class="font-medium text-slate-900">
-                    {{ fileInfo.type || "-" }}
-                  </p>
-                </div>
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                  <p
-                    class="text-xs text-slate-500 uppercase tracking-wider mb-1"
-                  >
-                    Diupload
-                  </p>
-                  <p class="font-medium text-slate-900">
-                    {{ formatDate(rabData.createdAt) }}
-                  </p>
-                </div>
-              </div>
-              <div
-                class="mt-4 p-4 rounded-xl bg-[#d1a82a]/10 border border-[#d1a82a]/20"
-              >
-                <div class="flex items-start gap-3">
-                  <Icon
-                    name="heroicons:information-circle"
-                    class="w-5 h-5 text-[#d1a82a] mt-0.5"
-                  />
-                  <div>
-                    <p class="text-sm font-medium text-slate-900">
-                      URL Dokumen
-                    </p>
-                    <p class="text-sm text-slate-600 font-mono break-all mt-1">
-                      {{ rabData.fileRabUrl }}
-                    </p>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -624,19 +544,18 @@
               class="w-full border border-slate-200 rounded-lg p-2"
             />
             <p class="text-xs text-slate-500 mt-1">
-              Unggah file PDF, Word, atau Excel (maks. 10MB)
+              Unggah file PDF (maks. 10MB)
             </p>
           </div>
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1"
-              >Catatan Revisi (opsional)</label
+            <label for="" class="block text-sm font-medium text-slate-700 mb-1"
+              >Masukan Judul Baru</label
             >
-            <textarea
-              v-model="editNote"
-              rows="3"
-              placeholder="Jelaskan perubahan yang dilakukan..."
-              class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-[#3b5988] focus:ring-1 focus:ring-[#3b5988] outline-none"
-            ></textarea>
+            <input
+              type="text"
+              v-model="editJudul"
+              class="w-full border border-slate-200 rounded-lg p-2"
+            />
           </div>
         </div>
         <div class="flex justify-end gap-3 mt-6">
@@ -648,7 +567,7 @@
           </button>
           <button
             @click="saveEdit"
-            :disabled="isEditing || !editFile"
+            :disabled="isEditing || editJudul == rabData.judulKegiatan"
             class="px-4 py-2 rounded-lg bg-[#3b5988] text-white hover:bg-[#2d4570] disabled:opacity-50"
           >
             {{ isEditing ? "Menyimpan..." : "Simpan Perubahan" }}
@@ -718,7 +637,7 @@
   const isSubmitting = ref(false);
   const isEditing = ref(false);
   const editFile = ref(null);
-  const editNote = ref("");
+  const editJudul = ref("");
 
   const ormawaData = computed(() => authStore.user);
 
@@ -939,14 +858,16 @@
   };
 
   const saveEdit = async () => {
-    if (!editFile.value) return;
     isEditing.value = true;
     try {
       const formData = new FormData();
       formData.append("rabId", rabData.value.id);
       formData.append("file", editFile.value);
-      formData.append("note", editNote.value);
-      await $fetch("/api/ormawa/Rab/update", {
+      formData.append(
+        "editJudul",
+        editJudul.value || rabData.value.judulKegiatan,
+      );
+      await $fetch("/api/ormawa/Rab/updateRab", {
         method: "POST",
         body: formData,
       });
@@ -954,8 +875,7 @@
       await approveLogStore.fetchApprovalLogs(route.params.id);
       showEditModal.value = false;
       editFile.value = null;
-      editNote.value = "";
-      alert("Revisi berhasil disimpan");
+      editJudul.value = "";
     } catch (err) {
       console.error(err);
       alert("Gagal menyimpan revisi");
@@ -980,6 +900,7 @@
     if (id) {
       await rabStore.fetchFullRabData(id);
       await approveLogStore.fetchApprovalLogs(id);
+      editJudul.value = rabData.value.judulKegiatan;
     }
   });
 
