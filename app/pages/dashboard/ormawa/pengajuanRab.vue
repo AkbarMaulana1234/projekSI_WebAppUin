@@ -765,7 +765,7 @@
         formDataToSend.append("file_rab", formData.file_rab);
       }
 
-      const response = await $fetch("/api/ormawa/Rab/PengajuanRab", {
+      const response = await $fetch("/ormawa/pengajuanRab", {
         method: "post",
         body: formDataToSend,
       });
