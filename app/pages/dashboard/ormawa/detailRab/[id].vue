@@ -557,6 +557,32 @@
               class="w-full border border-slate-200 rounded-lg p-2"
             />
           </div>
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-2">
+              Total Anggaran yang Diajukan <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <span
+                class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium"
+                >Rp</span
+              >
+              <input
+                type="text"
+                :value="formatCurrency(anggaranBaru)"
+                @input="
+                  (e) => {
+                    const raw = e.target.value.replace(/[^0-9]/g, '');
+                    anggaranBaru = raw ? Number(raw) : 0;
+                  }
+                "
+                placeholder="0"
+                class="w-full pl-12 pr-4 py-3 rounded-xl border..."
+              />
+            </div>
+            <p class="mt-1 text-xs text-slate-500">
+              Masukkan nominal tanpa titik atau koma
+            </p>
+          </div>
         </div>
         <div class="flex justify-end gap-3 mt-6">
           <button
@@ -567,7 +593,11 @@
           </button>
           <button
             @click="saveEdit"
-            :disabled="isEditing || editJudul == rabData.judulKegiatan"
+            :disabled="
+              isEditing ||
+              (editJudul == rabData.judulKegiatan &&
+                anggaranBaru == rabData.totalAnggaran)
+            "
             class="px-4 py-2 rounded-lg bg-[#3b5988] text-white hover:bg-[#2d4570] disabled:opacity-50"
           >
             {{ isEditing ? "Menyimpan..." : "Simpan Perubahan" }}
@@ -638,7 +668,7 @@
   const isEditing = ref(false);
   const editFile = ref(null);
   const editJudul = ref("");
-
+  const anggaranBaru = ref(0);
   const ormawaData = computed(() => authStore.user);
 
   // Informasi file dari blob
@@ -658,6 +688,11 @@
     }
     return { name: null, size: null, type: null };
   });
+  const formatRupiah = (value) => {
+    if (!value) return "";
+    const number = value.toString().replace(/[^0-9]/g, "");
+    return new Intl.NumberFormat("id-ID").format(number);
+  };
 
   const isPdf = computed(() => {
     const type = fileInfo.value.type;
@@ -863,12 +898,13 @@
       const formData = new FormData();
       formData.append("rabId", rabData.value.id);
       formData.append("file", editFile.value);
+      formData.append("anggaranBaru", anggaranBaru.value);
       formData.append(
         "editJudul",
         editJudul.value || rabData.value.judulKegiatan,
       );
       await $fetch("/api/ormawa/Rab/updateRab", {
-        method: "POST",
+        method: "patch",
         body: formData,
       });
       await rabStore.fetchFullRabData(route.params.id);
@@ -904,6 +940,7 @@
       await rabStore.fetchFullRabData(id);
       await approveLogStore.fetchApprovalLogs(id);
       editJudul.value = rabData.value.judulKegiatan;
+      anggaranBaru.value = rabData.value.totalAnggaran;
     }
   });
 

@@ -31,9 +31,8 @@ export default defineEventHandler(async (event) => {
 
   const editJudul = getFieldText("editJudul");
   const rabId = getFieldText("rabId");
-
+  const anggaranBaru = getFieldText("anggaranBaru");
   const editFileBuffer = getFileBuffer("file");
-
   if (!rabId) {
     throw createError({
       statusCode: 400,
@@ -62,6 +61,7 @@ export default defineEventHandler(async (event) => {
         judulKegiatan: editJudul,
         status: "waiting_kaprodi",
         updatedAt: new Date(),
+        totalAnggaran: anggaranBaru,
       })
       .where(eq(pengajuanRabTable.id, Number(rabId)));
   } catch (error) {
