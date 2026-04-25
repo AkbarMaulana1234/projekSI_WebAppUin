@@ -886,7 +886,10 @@
 
   const deleteDraft = async () => {
     try {
-      await $fetch(`/api/ormawa/Rab/${rabData.value.id}`, { method: "DELETE" });
+      await $fetch(`/api/ormawa/Rab/hapusDraft`, {
+        method: "DELETE",
+        body: { rabId: rabData.value.id },
+      });
       navigateTo("/dashboard");
     } catch (err) {
       console.error(err);
