@@ -2,7 +2,7 @@ import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { cwd } from "node:process";
 
-export type Category = "Lpg" | "Rab";
+export type Category = "Lpg" | "Rab" | "Tor";
 export type Status =
   | "DiTolak"
   | "Selesai"

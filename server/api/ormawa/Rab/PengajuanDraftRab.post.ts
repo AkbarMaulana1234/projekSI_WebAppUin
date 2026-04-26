@@ -28,6 +28,7 @@ export default defineEventHandler(async (event) => {
 
     const db = useDrizzle();
 
+    // 2. Cari data pengajuan di database
     const rab = await db.query.pengajuanRabTable.findFirst({
       where: and(
         eq(pengajuanRabTable.id, rabId),
@@ -42,46 +43,67 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    const { fileRabUrl } = rab;
-    if (!fileRabUrl) {
+    // 3. Validasi keberadaan file RAB dan TOR
+    const { fileRabUrl, fileTorUrl } = rab;
+    if (!fileRabUrl || !fileTorUrl) {
       throw createError({
         statusCode: 400,
-        message: "File RAB tidak tersedia",
+        message:
+          "Dokumen RAB atau TOR tidak lengkap. Harap lengkapi file sebelum mengajukan.",
       });
     }
 
-    const namaFile = path.basename(fileRabUrl);
+    // 4. Proses pemindahan file RAB
+    const namaFileRab = path.basename(fileRabUrl);
+    const pathSumberRab = path.resolve(process.cwd(), fileRabUrl);
+    const pathFolderTujuanRab = await createFilePath("Rab", "sedangDiAjukan");
+    const pathTujuanRab = path.join(pathFolderTujuanRab, namaFileRab);
 
-    const pathSumber = path.resolve(process.cwd(), fileRabUrl);
+    // 5. Proses pemindahan file TOR
+    const namaFileTor = path.basename(fileTorUrl);
+    const pathSumberTor = path.resolve(process.cwd(), fileTorUrl);
+    const pathFolderTujuanTor = await createFilePath("Tor", "sedangDiAjukan");
+    const pathTujuanTor = path.join(pathFolderTujuanTor, namaFileTor);
 
-    const pathFolderTujuan = await createFilePath("Rab", "sedangDiAjukan");
+    // Lakukan pemindahan file secara asinkron
+    await Promise.all([
+      fs.rename(pathSumberRab, pathTujuanRab),
+      fs.rename(pathSumberTor, pathTujuanTor),
+    ]);
 
-    const pathTujuan = path.join(pathFolderTujuan, namaFile);
+    // Format relative path untuk disimpan di database
+    const newFileRabUrl = path
+      .relative(process.cwd(), pathTujuanRab)
+      .replace(/\\/g, "/");
+    const newFileTorUrl = path
+      .relative(process.cwd(), pathTujuanTor)
+      .replace(/\\/g, "/");
 
-    await fs.rename(pathSumber, pathTujuan);
-
-    // 5. Update status RAB di database
+    // 6. Update status dan path file di database
     await db
       .update(pengajuanRabTable)
       .set({
         status: "waiting_kaprodi",
-        fileRabUrl: path
-          .relative(process.cwd(), pathTujuan)
-          .replace(/\\/g, "/"),
+        fileRabUrl: newFileRabUrl,
+        fileTorUrl: newFileTorUrl,
         updatedAt: new Date(),
       })
       .where(eq(pengajuanRabTable.id, rabId));
 
-    // 6. Kembalikan respon sukses
+    // 7. Kembalikan respon sukses
     return {
       success: true,
-      message: "Pengajuan RAB berhasil dikirim",
+      message: "Pengajuan kegiatan (RAB & TOR) berhasil dikirim",
       data: {
         rabId,
-        namaFile,
-        lokasiBaru: path
-          .relative(process.cwd(), pathTujuan)
-          .replace(/\\/g, "/"),
+        fileRab: {
+          namaFile: namaFileRab,
+          lokasiBaru: newFileRabUrl,
+        },
+        fileTor: {
+          namaFile: namaFileTor,
+          lokasiBaru: newFileTorUrl,
+        },
       },
     };
   } catch (error: any) {
