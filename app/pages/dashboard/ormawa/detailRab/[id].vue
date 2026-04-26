@@ -1,17 +1,15 @@
 <template>
   <div class="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
-    <!-- Loading -->
     <div v-if="loading" class="flex justify-center items-center h-64">
       <div class="text-center">
         <Icon
           name="heroicons:arrow-path"
           class="w-12 h-12 animate-spin text-[#3b5988] mx-auto mb-4"
         />
-        <p class="text-slate-600">Memuat data RAB...</p>
+        <p class="text-slate-600">Memuat data pengajuan...</p>
       </div>
     </div>
 
-    <!-- Error -->
     <div v-else-if="error" class="max-w-6xl mx-auto">
       <div class="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
         <Icon
@@ -29,9 +27,7 @@
       </div>
     </div>
 
-    <!-- Konten Utama -->
     <div v-else-if="rabData" class="max-w-6xl mx-auto space-y-6">
-      <!-- Header -->
       <div class="flex items-center justify-between">
         <button
           @click="goBack"
@@ -62,15 +58,13 @@
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Kolom Kiri (2/3) -->
         <div class="lg:col-span-2 space-y-6">
-          <!-- Judul & Info -->
           <div
             class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8"
           >
             <div class="flex items-start justify-between gap-4 mb-4">
               <div>
-                <p class="text-sm text-slate-500 mb-1">Pengajuan RAB</p>
+                <p class="text-sm text-slate-500 mb-1">Pengajuan RAB & TOR</p>
                 <h1
                   class="text-2xl sm:text-3xl font-bold text-slate-900 leading-tight"
                 >
@@ -100,26 +94,28 @@
                 </button>
               </div>
             </div>
-            <div class="flex items-center gap-4 text-sm text-slate-600">
+
+            <div
+              class="flex flex-wrap items-center gap-4 text-sm text-slate-600"
+            >
+              <div class="flex items-center gap-2">
+                <Icon name="heroicons:clock" class="w-4 h-4 text-[#d1a82a]" />
+                <span class="font-medium text-slate-800">
+                  Pelaksanaan: {{ formatDate(rabData.tanggalMulai) }} s/d
+                  {{ formatDate(rabData.tanggalSelesai) }}
+                </span>
+              </div>
+              <span class="text-slate-300 hidden sm:block">|</span>
               <div class="flex items-center gap-2">
                 <Icon
                   name="heroicons:calendar"
-                  class="w-4 h-4 text-[#d1a82a]"
+                  class="w-4 h-4 text-slate-400"
                 />
                 <span>Diajukan {{ formatDate(rabData.createdAt) }}</span>
-              </div>
-              <span class="text-slate-300">|</span>
-              <div class="flex items-center gap-2">
-                <Icon
-                  name="heroicons:arrow-path"
-                  class="w-4 h-4 text-[#d1a82a]"
-                />
-                <span>Update {{ formatDate(rabData.updatedAt) }}</span>
               </div>
             </div>
           </div>
 
-          <!-- Progress Timeline -->
           <div
             class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8"
           >
@@ -187,63 +183,59 @@
                       >
                     </div>
                     <p class="text-sm text-slate-600">{{ step.description }}</p>
-                    <div v-if="step.isActive" class="mt-2">
-                      <span
-                        :class="[
-                          'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border',
-                          getStatusColor(rabData.status),
-                        ]"
-                      >
-                        <span
-                          :class="[
-                            'w-1.5 h-1.5 rounded-full',
-                            getStatusDot(rabData.status),
-                          ]"
-                        ></span>
-                        {{ formatStatus(rabData.status) }}
-                      </span>
-                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Dokumen RAB (Preview & Info) -->
           <div
             class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"
           >
-            <div
-              class="p-6 border-b border-slate-100 flex items-center justify-between"
-            >
+            <div class="p-4 sm:p-6 border-b border-slate-100">
               <h3
-                class="text-lg font-bold text-slate-900 flex items-center gap-2"
+                class="text-lg font-bold text-slate-900 flex items-center gap-2 mb-4"
               >
                 <Icon
                   name="heroicons:document-text"
                   class="w-5 h-5 text-[#d1a82a]"
                 />
-                Dokumen RAB
+                Preview Dokumen
               </h3>
-              <div class="flex gap-2">
+
+              <div class="flex gap-2 p-1 bg-slate-100 rounded-xl inline-flex">
                 <button
-                  @click="viewMode = 'preview'"
+                  @click="activeDocumentTab = 'rab'"
                   :class="[
-                    'px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
-                    viewMode === 'preview'
-                      ? 'bg-[#3b5988] text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
+                    'px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2',
+                    activeDocumentTab === 'rab'
+                      ? 'bg-white text-[#3b5988] shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900',
                   ]"
                 >
-                  Preview
+                  <Icon name="heroicons:calculator" class="w-4 h-4" />
+                  RAB
+                </button>
+                <button
+                  @click="activeDocumentTab = 'tor'"
+                  :class="[
+                    'px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2',
+                    activeDocumentTab === 'tor'
+                      ? 'bg-white text-[#3b5988] shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900',
+                  ]"
+                >
+                  <Icon name="heroicons:document-duplicate" class="w-4 h-4" />
+                  TOR
                 </button>
               </div>
             </div>
-            <div v-if="viewMode === 'preview'" class="p-6">
-              <div v-if="fileObjectUrl" class="w-full">
+
+            <div class="p-6">
+              <div v-if="currentFileObjectUrl" class="w-full">
                 <iframe
                   v-if="isPdf"
-                  :src="fileObjectUrl"
+                  :src="currentFileObjectUrl"
                   class="w-full h-[600px] rounded-xl border border-slate-200"
                   frameborder="0"
                 ></iframe>
@@ -259,7 +251,7 @@
                     @click="downloadDocument"
                     class="px-4 py-2 bg-[#3b5988] text-white rounded-lg"
                   >
-                    Download File
+                    Download {{ activeDocumentTab.toUpperCase() }}
                   </button>
                 </div>
                 <div class="flex justify-center gap-3 mt-4">
@@ -268,10 +260,11 @@
                     class="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#3b5988] text-white font-medium hover:bg-[#2d4570] transition-all"
                   >
                     <Icon name="heroicons:eye" class="w-5 h-5" />
-                    Lihat di Tab Baru
+                    Buka {{ activeDocumentTab.toUpperCase() }} di Tab Baru
                   </button>
                 </div>
               </div>
+
               <div
                 v-else
                 class="aspect-[3/4] bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center p-8 text-center"
@@ -285,24 +278,16 @@
                   />
                 </div>
                 <h4 class="text-lg font-semibold text-slate-900 mb-2">
-                  Preview Tidak Tersedia
+                  Belum ada file
                 </h4>
                 <p class="text-sm text-slate-500 mb-4 max-w-sm">
-                  File mungkin belum diupload atau format tidak didukung untuk
-                  pratinjau.
+                  File {{ activeDocumentTab.toUpperCase() }} tidak tersedia atau
+                  gagal dimuat.
                 </p>
-                <button
-                  @click="downloadDocument"
-                  class="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-[#3b5988] text-[#3b5988] font-medium hover:bg-[#3b5988]/5 transition-all"
-                >
-                  <Icon name="heroicons:arrow-down-tray" class="w-5 h-5" />
-                  Download File
-                </button>
               </div>
             </div>
           </div>
 
-          <!-- Riwayat Approval Log (menggunakan store) -->
           <div
             class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8"
           >
@@ -316,9 +301,8 @@
               Riwayat Persetujuan & Revisi
               <span
                 class="ml-2 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs"
+                >{{ approvalLogs.length }}</span
               >
-                {{ approvalLogs.length }}
-              </span>
             </h3>
             <div class="space-y-4">
               <div
@@ -394,14 +378,10 @@
               >
                 Belum ada riwayat persetujuan.
               </div>
-              <div v-if="loadingLogs" class="text-center py-8 text-slate-500">
-                Memuat riwayat...
-              </div>
             </div>
           </div>
         </div>
 
-        <!-- Kolom Kanan (1/3) Ringkasan -->
         <div class="space-y-6">
           <div
             class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-20"
@@ -430,6 +410,18 @@
                 <div
                   class="flex justify-between items-center py-2 border-b border-slate-100"
                 >
+                  <span class="text-sm text-slate-600">Jadwal Acara</span>
+                  <span
+                    class="font-medium text-slate-900 text-right text-xs max-w-[120px]"
+                  >
+                    {{ formatDate(rabData.tanggalMulai) }} - <br />{{
+                      formatDate(rabData.tanggalSelesai)
+                    }}
+                  </span>
+                </div>
+                <div
+                  class="flex justify-between items-center py-2 border-b border-slate-100"
+                >
                   <span class="text-sm text-slate-600">Tanggal Pengajuan</span>
                   <span class="font-medium text-slate-900">{{
                     formatDate(rabData.createdAt)
@@ -452,14 +444,15 @@
                 </div>
               </div>
             </div>
+
             <div class="mt-6 space-y-3">
               <button
                 v-if="rabData.status === 'draft'"
                 @click="showAjukanModal = true"
                 class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-medium hover:from-emerald-600 hover:to-emerald-700 transition-all shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
               >
-                <Icon name="heroicons:paper-airplane" class="w-5 h-5" />
-                Ajukan RAB
+                <Icon name="heroicons:paper-airplane" class="w-5 h-5" /> Ajukan
+                Pengajuan
               </button>
               <button
                 v-if="
@@ -470,23 +463,15 @@
                 @click="showEditModal = true"
                 class="w-full py-3 rounded-xl bg-[#3b5988] text-white font-medium hover:bg-[#2d4570] transition-all shadow-lg shadow-[#3b5988]/25 flex items-center justify-center gap-2"
               >
-                <Icon name="heroicons:pencil-square" class="w-5 h-5" />
-                Edit Dokumen
-              </button>
-              <button
-                @click="downloadDocument"
-                class="w-full py-3 rounded-xl border-2 border-slate-200 text-slate-700 font-medium hover:border-[#3b5988] hover:text-[#3b5988] transition-all flex items-center justify-center gap-2"
-              >
-                <Icon name="heroicons:arrow-down-tray" class="w-5 h-5" />
-                Download Dokumen
+                <Icon name="heroicons:pencil-square" class="w-5 h-5" /> Edit
+                Data & Dokumen
               </button>
               <button
                 v-if="rabData.status === 'draft'"
                 @click="showDeleteModal = true"
                 class="w-full py-3 rounded-xl border-2 border-red-200 text-red-600 font-medium hover:border-red-300 hover:bg-red-50 transition-all flex items-center justify-center gap-2"
               >
-                <Icon name="heroicons:trash" class="w-5 h-5" />
-                Hapus Draft
+                <Icon name="heroicons:trash" class="w-5 h-5" /> Hapus Draft
               </button>
             </div>
           </div>
@@ -494,17 +479,16 @@
       </div>
     </div>
 
-    <!-- Modal Konfirmasi Ajukan -->
     <div
       v-if="showAjukanModal"
       class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
       @click.self="showAjukanModal = false"
     >
       <div class="bg-white rounded-2xl max-w-md w-full p-6">
-        <h3 class="text-xl font-bold text-slate-900 mb-4">Ajukan RAB</h3>
+        <h3 class="text-xl font-bold text-slate-900 mb-4">Ajukan RAB & TOR</h3>
         <p class="text-slate-600 mb-6">
-          Apakah Anda yakin ingin mengajukan RAB ini? Setelah diajukan, dokumen
-          tidak dapat diubah hingga ada permintaan revisi.
+          Apakah Anda yakin ingin mengajukan RAB & TOR ini? Setelah diajukan,
+          dokumen tidak dapat diubah hingga ada permintaan revisi.
         </p>
         <div class="flex justify-end gap-3">
           <button
@@ -524,43 +508,54 @@
       </div>
     </div>
 
-    <!-- Modal Edit Upload File -->
     <div
       v-if="showEditModal"
       class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
       @click.self="showEditModal = false"
     >
-      <div class="bg-white rounded-2xl max-w-lg w-full p-6">
-        <h3 class="text-xl font-bold text-slate-900 mb-4">Edit Dokumen RAB</h3>
-        <div class="space-y-4">
+      <div
+        class="bg-white rounded-2xl max-w-xl w-full p-6 max-h-[90vh] overflow-y-auto"
+      >
+        <h3 class="text-xl font-bold text-slate-900 mb-4">Edit Pengajuan</h3>
+        <div class="space-y-5">
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-1"
-              >Upload File Baru</label
-            >
-            <input
-              type="file"
-              @change="handleEditFile"
-              accept=".pdf,.doc,.docx,.xls,.xlsx"
-              class="w-full border border-slate-200 rounded-lg p-2"
-            />
-            <p class="text-xs text-slate-500 mt-1">
-              Unggah file PDF (maks. 10MB)
-            </p>
-          </div>
-          <div>
-            <label for="" class="block text-sm font-medium text-slate-700 mb-1"
-              >Masukan Judul Baru</label
+              >Judul Kegiatan</label
             >
             <input
               type="text"
               v-model="editJudul"
-              class="w-full border border-slate-200 rounded-lg p-2"
+              class="w-full border border-slate-200 rounded-lg p-3 focus:ring-[#3b5988] focus:border-[#3b5988]"
             />
           </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1"
+                >Tanggal Mulai</label
+              >
+              <input
+                type="date"
+                v-model="editTanggalMulai"
+                class="w-full border border-slate-200 rounded-lg p-3 focus:ring-[#3b5988] focus:border-[#3b5988]"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1"
+                >Tanggal Selesai</label
+              >
+              <input
+                type="date"
+                v-model="editTanggalSelesai"
+                class="w-full border border-slate-200 rounded-lg p-3 focus:ring-[#3b5988] focus:border-[#3b5988]"
+              />
+            </div>
+          </div>
+
           <div>
-            <label class="block text-sm font-semibold text-slate-700 mb-2">
-              Total Anggaran yang Diajukan <span class="text-red-500">*</span>
-            </label>
+            <label class="block text-sm font-semibold text-slate-700 mb-2"
+              >Total Anggaran</label
+            >
             <div class="relative">
               <span
                 class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium"
@@ -576,15 +571,47 @@
                   }
                 "
                 placeholder="0"
-                class="w-full pl-12 pr-4 py-3 rounded-xl border..."
+                class="w-full pl-12 pr-4 py-3 rounded-lg border border-slate-200 focus:ring-[#3b5988] focus:border-[#3b5988]"
               />
             </div>
-            <p class="mt-1 text-xs text-slate-500">
-              Masukkan nominal tanpa titik atau koma
+          </div>
+
+          <hr class="border-slate-200 my-2" />
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1"
+              >Upload File RAB Baru (Opsional)</label
+            >
+            <input
+              type="file"
+              @change="(e) => handleEditFile(e, 'rab')"
+              accept=".pdf"
+              class="w-full border border-slate-200 rounded-lg p-2"
+            />
+            <p class="text-xs text-slate-500 mt-1">
+              Biarkan kosong jika tidak ingin mengubah file RAB (Hanya PDF, maks
+              10MB)
+            </p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1"
+              >Upload File TOR Baru (Opsional)</label
+            >
+            <input
+              type="file"
+              @change="(e) => handleEditFile(e, 'tor')"
+              accept=".pdf"
+              class="w-full border border-slate-200 rounded-lg p-2"
+            />
+            <p class="text-xs text-slate-500 mt-1">
+              Biarkan kosong jika tidak ingin mengubah file TOR (Hanya PDF, maks
+              10MB)
             </p>
           </div>
         </div>
-        <div class="flex justify-end gap-3 mt-6">
+
+        <div class="flex justify-end gap-3 mt-8">
           <button
             @click="showEditModal = false"
             class="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50"
@@ -593,11 +620,7 @@
           </button>
           <button
             @click="saveEdit"
-            :disabled="
-              isEditing ||
-              (editJudul == rabData.judulKegiatan &&
-                anggaranBaru == rabData.totalAnggaran)
-            "
+            :disabled="isEditing"
             class="px-4 py-2 rounded-lg bg-[#3b5988] text-white hover:bg-[#2d4570] disabled:opacity-50"
           >
             {{ isEditing ? "Menyimpan..." : "Simpan Perubahan" }}
@@ -606,7 +629,6 @@
       </div>
     </div>
 
-    <!-- Modal Hapus Draft -->
     <div
       v-if="showDeleteModal"
       class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
@@ -643,7 +665,6 @@
   import { useAuthStore } from "~/stores/auth";
   import { useApproveLog } from "~/stores/ormawa/approveLogRab";
   import { storeToRefs } from "pinia";
-
   const route = useRoute();
   const rabStore = useRabStore();
   const authStore = useAuthStore();
@@ -653,54 +674,81 @@
   const rabData = computed(() => rabStore.detail);
   const loading = computed(() => rabStore.loading);
   const error = computed(() => rabStore.error);
-  const fileObjectUrl = computed(() => rabStore.fileObjectUrl);
+
+  // Multi-document State
+  const activeDocumentTab = ref("rab");
+  const fileRabObjectUrl = computed(() => rabStore.fileRabObjectUrl);
+  const fileTorObjectUrl = computed(() => rabStore.fileTorObjectUrl);
+  const currentFileObjectUrl = computed(() =>
+    activeDocumentTab.value === "rab"
+      ? fileRabObjectUrl.value
+      : fileTorObjectUrl.value,
+  );
 
   // State dari store Approval Log
   const { logs: approvalLogs, loading: loadingLogs } =
     storeToRefs(approveLogStore);
 
   // UI state lokal
-  const viewMode = ref("preview");
   const showAjukanModal = ref(false);
   const showEditModal = ref(false);
   const showDeleteModal = ref(false);
   const isSubmitting = ref(false);
   const isEditing = ref(false);
-  const editFile = ref(null);
+
+  // Edit Form State
+  const editFileRab = ref(null);
+  const editFileTor = ref(null);
   const editJudul = ref("");
+  const editTanggalMulai = ref("");
+  const editTanggalSelesai = ref("");
   const anggaranBaru = ref(0);
+
   const ormawaData = computed(() => authStore.user);
 
-  // Informasi file dari blob
+  // Helper for formatting date inputs correctly (YYYY-MM-DD)
+  const formatForInputDate = (isoString) => {
+    if (!isoString) return "";
+    return new Date(isoString).toISOString().split("T")[0];
+  };
+
+  // Informasi file dinamis berdasarkan tab yang aktif
   const fileInfo = computed(() => {
-    if (rabStore.fileBlob) {
-      const blob = rabStore.fileBlob;
-      let name = "dokumen";
-      if (rabData.value?.fileRabUrl) {
-        const urlParts = rabData.value.fileRabUrl.split("/");
-        name = urlParts.pop() || "dokumen";
+    const activeBlob =
+      activeDocumentTab.value === "rab"
+        ? rabStore.fileRabBlob
+        : rabStore.fileTorBlob;
+    const activeUrl =
+      activeDocumentTab.value === "rab"
+        ? rabData.value?.fileRabUrl
+        : rabData.value?.fileTorUrl;
+
+    if (activeBlob) {
+      let name = `dokumen_${activeDocumentTab.value}`;
+      if (activeUrl) {
+        const urlParts = activeUrl.split("/");
+        name = urlParts.pop() || name;
       }
       return {
         name: name,
-        size: formatBytes(blob.size),
-        type: blob.type || "application/octet-stream",
+        size: formatBytes(activeBlob.size),
+        type: activeBlob.type || "application/pdf",
       };
     }
     return { name: null, size: null, type: null };
   });
-  const formatRupiah = (value) => {
-    if (!value) return "";
-    const number = value.toString().replace(/[^0-9]/g, "");
-    return new Intl.NumberFormat("id-ID").format(number);
-  };
 
   const isPdf = computed(() => {
     const type = fileInfo.value.type;
-    const url = rabData.value?.fileRabUrl || "";
-    return type === "application/pdf" || url.toLowerCase().endsWith(".pdf");
+    const url =
+      activeDocumentTab.value === "rab"
+        ? rabData.value?.fileRabUrl
+        : rabData.value?.fileTorUrl;
+    return (
+      type === "application/pdf" || (url || "").toLowerCase().endsWith(".pdf")
+    );
   });
 
-  // Helper functions
   const formatBytes = (bytes) => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
@@ -744,10 +792,6 @@
       draft: "bg-slate-100 text-slate-700 border-slate-200",
       waiting_kaprodi: "bg-blue-50 text-blue-700 border-blue-200",
       revisi_kaprodi: "bg-amber-50 text-amber-700 border-amber-200",
-      waiting_ppk: "bg-blue-50 text-blue-700 border-blue-200",
-      revisi_ppk: "bg-amber-50 text-amber-700 border-amber-200",
-      waiting_spi: "bg-purple-50 text-purple-700 border-purple-200",
-      ditolak_spi: "bg-red-50 text-red-700 border-red-200",
       disetujui: "bg-emerald-50 text-emerald-700 border-emerald-200",
       selesai: "bg-emerald-50 text-emerald-700 border-emerald-200",
     };
@@ -759,10 +803,6 @@
       draft: "bg-slate-400",
       waiting_kaprodi: "bg-blue-500",
       revisi_kaprodi: "bg-amber-500",
-      waiting_ppk: "bg-blue-500",
-      revisi_ppk: "bg-amber-500",
-      waiting_spi: "bg-purple-500",
-      ditolak_spi: "bg-red-500",
       disetujui: "bg-emerald-500",
       selesai: "bg-emerald-500",
     };
@@ -774,17 +814,12 @@
       draft: "text-slate-600",
       waiting_kaprodi: "text-blue-600",
       revisi_kaprodi: "text-amber-600",
-      waiting_ppk: "text-blue-600",
-      revisi_ppk: "text-amber-600",
-      waiting_spi: "text-purple-600",
-      ditolak_spi: "text-red-600",
       disetujui: "text-emerald-600",
       selesai: "text-emerald-600",
     };
     return colors[status] || "text-slate-600";
   };
 
-  // Timeline steps
   const timelineSteps = computed(() => {
     const status = rabData.value?.status || "draft";
     const statusToStepMap = {
@@ -803,7 +838,7 @@
     const steps = [
       {
         title: "Pengajuan Draft",
-        description: "RAB dibuat dan disimpan sebagai draft",
+        description: "RAB & TOR dibuat dan disimpan sebagai draft",
         date: formatDate(rabData.value?.createdAt),
       },
       {
@@ -840,7 +875,6 @@
     });
   });
 
-  // Actions
   const goBack = () => navigateTo("/dashboard");
 
   const reloadData = async () => {
@@ -850,21 +884,30 @@
   };
 
   const openDocument = () => {
-    if (fileObjectUrl.value) {
-      window.open(fileObjectUrl.value, "_blank");
-    } else if (rabData.value?.fileRabUrl) {
-      window.open(rabData.value.fileRabUrl, "_blank");
+    const activeUrl =
+      activeDocumentTab.value === "rab"
+        ? rabData.value?.fileRabUrl
+        : rabData.value?.fileTorUrl;
+    if (currentFileObjectUrl.value) {
+      window.open(currentFileObjectUrl.value, "_blank");
+    } else if (activeUrl) {
+      window.open(activeUrl, "_blank");
     }
   };
 
   const downloadDocument = () => {
-    if (fileObjectUrl.value) {
+    const activeUrl =
+      activeDocumentTab.value === "rab"
+        ? rabData.value?.fileRabUrl
+        : rabData.value?.fileTorUrl;
+    if (currentFileObjectUrl.value) {
       const link = document.createElement("a");
-      link.href = fileObjectUrl.value;
-      link.download = fileInfo.value.name || "dokumen_rab.pdf";
+      link.href = currentFileObjectUrl.value;
+      link.download =
+        fileInfo.value.name || `dokumen_${activeDocumentTab.value}.pdf`;
       link.click();
-    } else if (rabData.value?.fileRabUrl) {
-      window.open(rabData.value.fileRabUrl, "_blank");
+    } else if (activeUrl) {
+      window.open(activeUrl, "_blank");
     }
   };
 
@@ -875,21 +918,22 @@
         method: "POST",
         body: { rabId: rabData.value.id },
       });
-      await rabStore.fetchFullRabData(route.params.id);
-      await approveLogStore.fetchApprovalLogs(route.params.id);
+      await reloadData();
       showAjukanModal.value = false;
-      alert("RAB berhasil diajukan");
     } catch (err) {
       console.error(err);
-      alert("Gagal mengajukan RAB");
+      alert("Gagal mengajukan dokumen");
     } finally {
       isSubmitting.value = false;
     }
   };
 
-  const handleEditFile = (e) => {
+  const handleEditFile = (e, type) => {
     const file = e.target.files[0];
-    if (file) editFile.value = file;
+    if (file) {
+      if (type === "rab") editFileRab.value = file;
+      if (type === "tor") editFileTor.value = file;
+    }
   };
 
   const saveEdit = async () => {
@@ -897,24 +941,30 @@
     try {
       const formData = new FormData();
       formData.append("rabId", rabData.value.id);
-      formData.append("file", editFile.value);
       formData.append("anggaranBaru", anggaranBaru.value);
       formData.append(
         "editJudul",
         editJudul.value || rabData.value.judulKegiatan,
       );
+
+      formData.append("tanggalMulai", editTanggalMulai.value);
+      formData.append("tanggalSelesai", editTanggalSelesai.value);
+
+      if (editFileRab.value) formData.append("fileRab", editFileRab.value);
+      if (editFileTor.value) formData.append("fileTor", editFileTor.value);
+
       await $fetch("/api/ormawa/Rab/updateRab", {
         method: "patch",
         body: formData,
       });
-      await rabStore.fetchFullRabData(route.params.id);
-      await approveLogStore.fetchApprovalLogs(route.params.id);
+
+      await reloadData();
       showEditModal.value = false;
-      editFile.value = null;
-      editJudul.value = "";
+      editFileRab.value = null;
+      editFileTor.value = null;
     } catch (err) {
       console.error(err);
-      alert("Gagal menyimpan revisi");
+      alert("Gagal menyimpan perubahan");
     } finally {
       isEditing.value = false;
     }
@@ -933,19 +983,23 @@
     }
   };
 
-  // Lifecycle
   onMounted(async () => {
     const id = route.params.id;
     if (id) {
-      await rabStore.fetchFullRabData(id);
-      await approveLogStore.fetchApprovalLogs(id);
-      editJudul.value = rabData.value.judulKegiatan;
-      anggaranBaru.value = rabData.value.totalAnggaran;
+      await reloadData();
+      if (rabData.value) {
+        editJudul.value = rabData.value.judulKegiatan;
+        anggaranBaru.value = rabData.value.totalAnggaran;
+        editTanggalMulai.value = formatForInputDate(rabData.value.tanggalMulai);
+        editTanggalSelesai.value = formatForInputDate(
+          rabData.value.tanggalSelesai,
+        );
+      }
     }
   });
 
   onBeforeUnmount(() => {
-    rabStore.cleanupFileUrl();
+    rabStore.cleanupFileUrls();
     approveLogStore.clearLogs();
   });
 </script>
@@ -954,9 +1008,7 @@
   @theme {
     --color-primary: #3b5988;
     --color-secondary: #d1a82a;
-    --color-bgLogin: #eee8aa;
   }
-
   @keyframes fadeIn {
     from {
       opacity: 0;
