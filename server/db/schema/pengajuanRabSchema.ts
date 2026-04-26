@@ -27,7 +27,7 @@ export const pengajuanRabTable = mysqlTable("pengajuan_rab", {
     .notNull(),
   usersId: varchar("users_id", { length: 50 })
     .notNull()
-    .references(() => usersTable.users_id), // sesuaikan tipe
+    .references(() => usersTable.users_id),
   judulKegiatan: varchar("judul_kegiatan", { length: 500 }).notNull(),
   deskripsi: text("deskripsi"),
   fileRabUrl: text("file_rab_url").notNull(),

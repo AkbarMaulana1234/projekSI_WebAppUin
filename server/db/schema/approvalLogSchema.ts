@@ -18,6 +18,6 @@ export const approvalLogTable = mysqlTable("approval_log", {
     .notNull()
     .references(() => usersTable.id, { onDelete: "restrict" }),
   action: varchar("action", { length: 50 }).notNull(),
-  catatanRevisi: text("catatan_revisi"),
+  catatanRevisi: text("catatan_revisi").notNull(),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow().notNull(),
 });
