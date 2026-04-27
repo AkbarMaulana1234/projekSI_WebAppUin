@@ -21,18 +21,21 @@ export default defineEventHandler(async (event) => {
 
   const getFileBuffer = (name: string) => {
     const field = formdata.find((f) => f.name === name);
-
     if (field && field.data && field.data.length > 0 && field.filename) {
       return field.data;
     }
-
     return null;
   };
 
-  const editJudul = getFieldText("editJudul");
   const rabId = getFieldText("rabId");
+  const editJudul = getFieldText("editJudul");
   const anggaranBaru = getFieldText("anggaranBaru");
-  const editFileBuffer = getFileBuffer("file");
+  const tanggalMulai = getFieldText("tanggalMulai");
+  const tanggalSelesai = getFieldText("tanggalSelesai");
+
+  const editFileRabBuffer = getFileBuffer("fileRab");
+  const editFileTorBuffer = getFileBuffer("fileTor");
+
   if (!rabId) {
     throw createError({
       statusCode: 400,
@@ -43,15 +46,45 @@ export default defineEventHandler(async (event) => {
   const db = useDrizzle();
 
   const [existingRab] = await db
-    .select({ fileUrl: pengajuanRabTable.fileRabUrl })
+    .select()
     .from(pengajuanRabTable)
     .where(eq(pengajuanRabTable.id, Number(rabId)));
 
   if (!existingRab) {
     throw createError({
       statusCode: 404,
-      statusMessage: "Data RAB tidak ditemukan.",
+      statusMessage: "Data pengajuan tidak ditemukan.",
     });
+  }
+
+  const formatToYYYYMMDD = (dateStr: any) => {
+    if (!dateStr) return "";
+    return new Date(dateStr).toISOString().split("T")[0];
+  };
+
+  const existingTanggalMulai = formatToYYYYMMDD(existingRab.tanggalMulai);
+  const existingTanggalSelesai = formatToYYYYMMDD(existingRab.tanggalSelesai);
+
+  const isJudulSama = existingRab.judulKegiatan === editJudul;
+  const isAnggaranSama = existingRab.totalAnggaran === anggaranBaru;
+  const isTanggalMulaiSama = existingTanggalMulai === tanggalMulai;
+  const isTanggalSelesaiSama = existingTanggalSelesai === tanggalSelesai;
+
+  const hasFileRab = !!editFileRabBuffer;
+  const hasFileTor = !!editFileTorBuffer;
+
+  if (
+    isJudulSama &&
+    isAnggaranSama &&
+    isTanggalMulaiSama &&
+    isTanggalSelesaiSama &&
+    !hasFileRab &&
+    !hasFileTor
+  ) {
+    return {
+      success: false,
+      message: "Tidak ada perubahan data yang dilakukan.",
+    };
   }
 
   try {
@@ -59,39 +92,43 @@ export default defineEventHandler(async (event) => {
       .update(pengajuanRabTable)
       .set({
         judulKegiatan: editJudul,
-        status: "waiting_kaprodi",
-        updatedAt: new Date(),
         totalAnggaran: anggaranBaru,
+        tanggalMulai: new Date(tanggalMulai),
+        tanggalSelesai: new Date(tanggalSelesai),
+        status: "waiting_kaprodi", // Ubah status agar divalidasi ulang oleh Kaprodi
+        updatedAt: new Date(),
       })
       .where(eq(pengajuanRabTable.id, Number(rabId)));
   } catch (error) {
+    console.error("Error DB Update:", error);
     throw createError({
       statusCode: 500,
-      statusMessage: "Gagal memperbarui judul di database.",
+      statusMessage: "Gagal memperbarui data di database.",
     });
   }
 
-  if (editFileBuffer && existingRab.fileUrl) {
-    const filePath = path.resolve(process.cwd(), existingRab.fileUrl);
-
-    try {
-      await fs.writeFile(filePath, editFileBuffer);
-    } catch (err) {
-      console.error("Gagal menimpa file:", err);
-      throw createError({
-        statusCode: 500,
-        statusMessage:
-          "Judul berhasil diupdate, tetapi server gagal menyimpan dokumen baru.",
-      });
+  // Tulis ulang file secara sinkron jika ada file baru
+  try {
+    if (hasFileRab && existingRab.fileRabUrl) {
+      const filePathRab = path.resolve(process.cwd(), existingRab.fileRabUrl);
+      await fs.writeFile(filePathRab, editFileRabBuffer!);
     }
-  }
 
-  const responseMessage = editFileBuffer
-    ? "Judul dan dokumen RAB berhasil diperbarui."
-    : "Judul RAB berhasil diperbarui (dokumen tetap sama).";
+    if (hasFileTor && existingRab.fileTorUrl) {
+      const filePathTor = path.resolve(process.cwd(), existingRab.fileTorUrl);
+      await fs.writeFile(filePathTor, editFileTorBuffer!);
+    }
+  } catch (err) {
+    console.error("Gagal menimpa file:", err);
+    throw createError({
+      statusCode: 500,
+      statusMessage:
+        "Data berhasil diupdate, tetapi server gagal menyimpan dokumen fisik yang baru.",
+    });
+  }
 
   return {
     success: true,
-    message: responseMessage,
+    message: "Pengajuan dan dokumen berhasil diperbarui.",
   };
 });

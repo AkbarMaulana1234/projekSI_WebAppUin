@@ -31,6 +31,8 @@ export default defineEventHandler(async (event) => {
       fileRabUrl: rab.fileRabUrl,
       totalAnggaran: rab.totalAnggaran,
       status: rab.status,
+      tanggalMulai: rab.tanggalMulai,
+      tanggalSelesai: rab.tanggalSelesai,
       createdAt: rab.createdAt,
       updatedAt: rab.updatedAt,
     },

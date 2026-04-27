@@ -38,17 +38,17 @@
             <th
               class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider"
             >
-              ID RAB
-            </th>
-            <th
-              class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider"
-            >
               Nama Kegiatan
             </th>
             <th
               class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider"
             >
-              Tanggal
+              Jadwal Acara
+            </th>
+            <th
+              class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider"
+            >
+              Tanggal Pengajuan
             </th>
             <th
               class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider"
@@ -73,12 +73,6 @@
             :key="rab.id"
             class="hover:bg-slate-50/50 transition-colors group"
           >
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="font-mono text-sm font-medium text-[#3b5988]">
-                {{ rab.pengajuanRabTable.nomorPengajuan }}
-              </span>
-            </td>
-
             <td class="px-6 py-4">
               <p class="text-sm font-semibold text-slate-900">
                 {{ rab.pengajuanRabTable.judulKegiatan }}
@@ -86,12 +80,20 @@
               <p class="text-xs text-slate-500">Pengaju: {{ rab.username }}</p>
             </td>
 
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+              <div class="flex flex-col gap-0.5">
+                <span class="font-medium text-[#3b5988]">
+                  Mulai: {{ formatDate(rab.pengajuanRabTable.tanggalMulai) }}
+                </span>
+                <span class="text-slate-500">
+                  Selesai:
+                  {{ formatDate(rab.pengajuanRabTable.tanggalSelesai) }}
+                </span>
+              </div>
+            </td>
+
             <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-              {{
-                new Date(rab.pengajuanRabTable.createdAt).toLocaleDateString(
-                  "id-ID",
-                )
-              }}
+              {{ formatDate(rab.pengajuanRabTable.createdAt) }}
             </td>
 
             <td class="px-6 py-4 whitespace-nowrap">
@@ -139,7 +141,6 @@
       </table>
     </div>
 
-    <!-- Pagination -->
     <div
       class="px-6 py-4 border-t border-slate-200 flex items-center justify-between"
     >
@@ -175,20 +176,31 @@
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
   import { useTableStore } from "~/stores/ormawa/table";
   import { ref, onMounted } from "vue";
+
   const isSidebarOpen = ref(false);
   const isModalOpen = ref(false);
   const selectedRab = ref(null);
   const tableStore = useTableStore();
 
+  // Helper function untuk format tanggal yang lebih rapi
+  const formatDate = (dateString: string | Date | null) => {
+    if (!dateString) return "-";
+    return new Date(dateString).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
   onMounted(async () => {
     await tableStore.getTable();
-    console.log(tableStore.table);
   });
+
   const openDetail = (rabID: number) => {
-    console.log(rabID);
     return navigateTo(`/dashboard/ormawa/detailRab/${rabID}`);
   };
 </script>

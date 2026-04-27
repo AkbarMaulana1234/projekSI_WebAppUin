@@ -35,8 +35,12 @@ export default defineEventHandler(async (event) => {
 
   const db = useDrizzle();
 
+  // 2. Ambil path RAB dan TOR dari database
   const [rab] = await db
-    .select({ rabPath: pengajuanRabTable.fileRabUrl })
+    .select({
+      rabPath: pengajuanRabTable.fileRabUrl,
+      torPath: pengajuanRabTable.fileTorUrl, // Menambahkan fetch path TOR
+    })
     .from(pengajuanRabTable)
     .where(
       and(eq(pengajuanRabTable.id, id), eq(pengajuanRabTable.usersId, user.id)),
@@ -45,34 +49,50 @@ export default defineEventHandler(async (event) => {
   if (!rab) {
     throw createError({
       statusCode: 404,
-      message: "File RAB tidak ditemukan atau bukan milik Anda",
+      message: "Data pengajuan tidak ditemukan atau bukan milik Anda",
     });
   }
 
-  const resolvedPath = path.resolve(process.cwd(), rab.rabPath);
-  const normalizedPath = path.normalize(resolvedPath);
-  const uploadsDir = path.resolve(process.cwd(), "uploads"); // contoh, sesuaikan
-  if (!normalizedPath.startsWith(uploadsDir)) {
-    console.error(
-      `Security: Attempt to delete file outside uploads directory: ${normalizedPath}`,
-    );
-    throw createError({
-      statusCode: 403,
-      message: "Akses file tidak diizinkan",
-    });
-  }
+  const uploadsDir = path.resolve(process.cwd(), "uploads"); // pastikan ini sesuai dengan path folder uploads utama Anda
 
-  try {
-    await fs.unlink(resolvedPath);
-  } catch (error) {
-    console.error(`Gagal menghapus file di ${resolvedPath}:`, error);
-    throw createError({
-      statusCode: 500,
-      message: "Gagal menghapus file RAB",
-      data: { path: rab.rabPath },
-    });
-  }
+  // 3. Helper function untuk memvalidasi dan menghapus file secara aman
+  const deletePhysicalFile = async (filePath: string | null) => {
+    if (!filePath) return;
 
+    const resolvedPath = path.resolve(process.cwd(), filePath);
+    const normalizedPath = path.normalize(resolvedPath);
+
+    // Keamanan: Cegah Directory Traversal
+    if (!normalizedPath.startsWith(uploadsDir)) {
+      console.error(
+        `Security: Attempt to delete file outside uploads directory: ${normalizedPath}`,
+      );
+      throw createError({
+        statusCode: 403,
+        message: "Akses penghapusan file tidak diizinkan",
+      });
+    }
+
+    try {
+      await fs.unlink(resolvedPath);
+    } catch (error: any) {
+      // Abaikan error ENOENT jika file fisik ternyata sudah tidak ada di folder
+      if (error.code !== "ENOENT") {
+        console.error(`Gagal menghapus file di ${resolvedPath}:`, error);
+        throw createError({
+          statusCode: 500,
+          message: "Gagal menghapus file dokumen",
+          data: { path: filePath },
+        });
+      }
+    }
+  };
+
+  // 4. Hapus kedua file fisik (RAB dan TOR)
+  await deletePhysicalFile(rab.rabPath);
+  await deletePhysicalFile(rab.torPath);
+
+  // 5. Hapus record dari database
   const deleteResult = await db
     .delete(pengajuanRabTable)
     .where(
@@ -88,6 +108,6 @@ export default defineEventHandler(async (event) => {
 
   return {
     status: "success",
-    message: "File RAB berhasil dihapus",
+    message: "Pengajuan kegiatan beserta dokumen RAB dan TOR berhasil dihapus",
   };
 });

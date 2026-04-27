@@ -92,6 +92,13 @@
       "when": 1776852659782,
       "tag": "0012_panoramic_saracen",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1777231378467,
+      "tag": "0013_ambiguous_silver_sable",
+      "breakpoints": true
     }
   ]
 }
