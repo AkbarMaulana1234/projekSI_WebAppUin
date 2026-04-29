@@ -6,7 +6,10 @@ export default defineConfig({
   schema: "./server/db/schema/*.ts",
   dialect: "mysql",
   dbCredentials: {
-    url: process.env.DATABASE_URL!,
-    port: 3306,
+    host: "localhost", // alamat server MySQL
+    port: 3306, // port default MySQL
+    user: "root", // username MySQL
+    password: "admin1234", // password MySQL
+    database: "e_administrasi", // nama database yang kamu buat
   },
 });
