@@ -116,6 +116,7 @@
             </div>
           </div>
 
+          <!-- ==================== PROGRESS PENGAJUAN (BARU) ==================== -->
           <div
             class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8"
           >
@@ -124,70 +125,241 @@
             >
               <Icon name="heroicons:chart-bar" class="w-5 h-5 text-[#d1a82a]" />
               Progress Pengajuan
+              <span
+                class="ml-auto text-xs font-medium px-2 py-1 rounded-full bg-slate-100 text-slate-600"
+              >
+                {{ getCurrentStepLabel() }}
+              </span>
             </h3>
-            <div class="relative">
-              <div
-                class="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-200"
-              ></div>
-              <div class="space-y-6">
+
+            <!-- Horizontal Stepper (Desktop) -->
+            <div class="hidden md:block">
+              <div class="relative">
+                <!-- Progress Bar Background -->
                 <div
-                  v-for="(step, index) in timelineSteps"
-                  :key="index"
-                  :class="[
-                    'relative flex gap-4 transition-opacity duration-300',
-                    step.isActive || step.isCompleted
-                      ? 'opacity-100'
-                      : 'opacity-50',
-                  ]"
-                >
+                  class="absolute top-5 left-0 w-full h-0.5 bg-slate-200 rounded-full"
+                ></div>
+
+                <!-- Dynamic Progress Fill -->
+                <div
+                  class="absolute top-5 left-0 h-0.5 bg-gradient-to-r from-[#3b5988] to-[#5b7bb0] rounded-full transition-all duration-500 ease-out"
+                  :style="{ width: `${progressPercentage}%` }"
+                ></div>
+
+                <!-- Steps -->
+                <div class="relative flex justify-between">
                   <div
-                    :class="[
-                      'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10 border-2 transition-all duration-300',
-                      step.isCompleted
-                        ? 'bg-emerald-500 border-emerald-500 text-white'
-                        : step.isError
-                          ? 'bg-amber-500 border-amber-500 text-white animate-pulse'
-                          : step.isActive
-                            ? 'bg-[#3b5988] border-[#3b5988] text-white'
-                            : 'bg-white border-slate-300 text-slate-400',
-                    ]"
+                    v-for="(step, index) in timelineSteps"
+                    :key="index"
+                    class="flex flex-col items-center flex-1"
                   >
-                    <Icon
-                      v-if="step.isCompleted"
-                      name="heroicons:check"
-                      class="w-5 h-5"
-                    />
-                    <Icon
-                      v-else-if="step.isError"
-                      name="heroicons:exclamation-triangle"
-                      class="w-5 h-5"
-                    />
-                    <span v-else class="text-xs font-bold">{{
-                      index + 1
-                    }}</span>
-                  </div>
-                  <div class="flex-1 pb-6">
-                    <div class="flex items-center justify-between mb-1">
-                      <h4
-                        :class="[
-                          'font-semibold',
-                          step.isActive ? 'text-slate-900' : 'text-slate-600',
-                        ]"
+                    <!-- Step Circle with Icon -->
+                    <div
+                      class="relative z-10 mb-3 transition-all duration-300"
+                      :class="{
+                        'transform scale-110': step.isActive && !step.isError,
+                        'animate-pulse': step.isError && step.isActive,
+                      }"
+                    >
+                      <div
+                        class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-md"
+                        :class="{
+                          'bg-emerald-500 ring-4 ring-emerald-100':
+                            step.isCompleted,
+                          'bg-amber-500 ring-4 ring-amber-100': step.isError,
+                          'bg-[#3b5988] ring-4 ring-[#3b5988]/20':
+                            step.isActive && !step.isError && !step.isCompleted,
+                          'bg-white border-2 border-slate-300':
+                            !step.isActive &&
+                            !step.isCompleted &&
+                            !step.isError,
+                        }"
+                      >
+                        <Icon
+                          v-if="step.isCompleted"
+                          name="heroicons:check"
+                          class="w-5 h-5 text-white"
+                        />
+                        <Icon
+                          v-else-if="step.isError"
+                          name="heroicons:exclamation-triangle"
+                          class="w-5 h-5 text-white"
+                        />
+                        <span
+                          v-else
+                          class="text-sm font-bold"
+                          :class="
+                            step.isActive ? 'text-white' : 'text-slate-500'
+                          "
+                        >
+                          {{ index + 1 }}
+                        </span>
+                      </div>
+                      <!-- Active step indicator dot -->
+                      <div
+                        v-if="
+                          step.isActive && !step.isCompleted && !step.isError
+                        "
+                        class="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[#3b5988] animate-ping"
+                      ></div>
+                    </div>
+
+                    <!-- Step Title -->
+                    <div class="text-center">
+                      <p
+                        class="font-semibold text-sm mb-1 transition-colors"
+                        :class="{
+                          'text-[#3b5988]': step.isActive,
+                          'text-slate-900': step.isCompleted,
+                          'text-slate-500': !step.isActive && !step.isCompleted,
+                          'text-amber-600': step.isError,
+                        }"
                       >
                         {{ step.title }}
-                      </h4>
+                      </p>
+                      <p class="text-xs text-slate-500 max-w-[120px] mx-auto">
+                        {{ step.description }}
+                      </p>
                       <span
                         v-if="step.date"
-                        class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded"
-                        >{{ step.date }}</span
+                        class="inline-block mt-1.5 text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600"
                       >
+                        {{ step.date }}
+                      </span>
                     </div>
-                    <p class="text-sm text-slate-600">{{ step.description }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Vertical Timeline (Mobile) -->
+            <div class="md:hidden">
+              <div class="relative">
+                <div
+                  class="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-200"
+                ></div>
+                <div class="space-y-6">
+                  <div
+                    v-for="(step, index) in timelineSteps"
+                    :key="index"
+                    class="relative flex gap-4 animate-fadeIn"
+                    :style="{ animationDelay: `${index * 0.05}s` }"
+                  >
+                    <div class="relative z-10">
+                      <div
+                        class="w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300"
+                        :class="{
+                          'bg-emerald-500': step.isCompleted,
+                          'bg-amber-500': step.isError,
+                          'bg-[#3b5988] shadow-lg shadow-[#3b5988]/30':
+                            step.isActive && !step.isError && !step.isCompleted,
+                          'bg-white border-2 border-slate-300':
+                            !step.isActive &&
+                            !step.isCompleted &&
+                            !step.isError,
+                        }"
+                      >
+                        <Icon
+                          v-if="step.isCompleted"
+                          name="heroicons:check"
+                          class="w-4 h-4 text-white"
+                        />
+                        <Icon
+                          v-else-if="step.isError"
+                          name="heroicons:exclamation-triangle"
+                          class="w-4 h-4 text-white"
+                        />
+                        <span
+                          v-else
+                          class="text-xs font-bold"
+                          :class="
+                            step.isActive ? 'text-white' : 'text-slate-500'
+                          "
+                        >
+                          {{ index + 1 }}
+                        </span>
+                      </div>
+                    </div>
+                    <div class="flex-1 pb-4">
+                      <div
+                        class="flex items-center justify-between flex-wrap gap-2 mb-1"
+                      >
+                        <h4
+                          class="font-semibold"
+                          :class="{
+                            'text-[#3b5988]': step.isActive,
+                            'text-slate-900': step.isCompleted,
+                            'text-slate-600':
+                              !step.isActive && !step.isCompleted,
+                            'text-amber-600': step.isError,
+                          }"
+                        >
+                          {{ step.title }}
+                        </h4>
+                        <span
+                          v-if="step.date"
+                          class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded"
+                        >
+                          {{ step.date }}
+                        </span>
+                      </div>
+                      <p class="text-sm text-slate-600 leading-relaxed">
+                        {{ step.description }}
+                      </p>
+                      <div
+                        v-if="step.isError && step.isActive"
+                        class="mt-2 inline-flex items-center gap-1 text-xs bg-amber-50 text-amber-600 px-2 py-1 rounded-lg"
+                      >
+                        <Icon
+                          name="heroicons:arrow-path"
+                          class="w-3 h-3 animate-spin"
+                        />
+                        Perlu Revisi
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Status Summary Card -->
+            <div class="mt-8 pt-6 border-t border-slate-100">
+              <div
+                class="bg-gradient-to-r from-slate-50 to-white rounded-xl p-4"
+              >
+                <div
+                  class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                >
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="w-10 h-10 rounded-full bg-[#3b5988]/10 flex items-center justify-center"
+                    >
+                      <Icon
+                        name="heroicons:information-circle"
+                        class="w-5 h-5 text-[#3b5988]"
+                      />
+                    </div>
+                    <div>
+                      <p class="text-xs text-slate-500 uppercase tracking-wide">
+                        Status Saat Ini
+                      </p>
+                      <p class="font-bold text-slate-900">
+                        {{ getCurrentStatusDescription() }}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 text-sm text-slate-600">
+                    <Icon name="heroicons:clock" class="w-4 h-4" />
+                    <span
+                      >Terakhir diperbarui:
+                      {{ formatDate(rabData?.updatedAt) }}</span
+                    >
                   </div>
                 </div>
               </div>
             </div>
           </div>
+          <!-- ==================== AKHIR PROGRESS PENGAJUAN ==================== -->
 
           <div
             class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"
@@ -479,6 +651,7 @@
       </div>
     </div>
 
+    <!-- Modals (Ajukan, Edit, Hapus) -->
     <div
       v-if="showAjukanModal"
       class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
@@ -665,6 +838,7 @@
   import { useAuthStore } from "~/stores/auth";
   import { useApproveLog } from "~/stores/ormawa/approveLogRab";
   import { storeToRefs } from "pinia";
+
   const route = useRoute();
   const rabStore = useRabStore();
   const authStore = useAuthStore();
@@ -706,13 +880,12 @@
 
   const ormawaData = computed(() => authStore.user);
 
-  // Helper for formatting date inputs correctly (YYYY-MM-DD)
+  // Helper functions
   const formatForInputDate = (isoString) => {
     if (!isoString) return "";
     return new Date(isoString).toISOString().split("T")[0];
   };
 
-  // Informasi file dinamis berdasarkan tab yang aktif
   const fileInfo = computed(() => {
     const activeBlob =
       activeDocumentTab.value === "rab"
@@ -820,6 +993,7 @@
     return colors[status] || "text-slate-600";
   };
 
+  // Timeline steps (sama seperti sebelumnya)
   const timelineSteps = computed(() => {
     const status = rabData.value?.status || "draft";
     const statusToStepMap = {
@@ -874,6 +1048,57 @@
       };
     });
   });
+
+  // Progress percentage untuk horizontal stepper
+  const progressPercentage = computed(() => {
+    const status = rabData.value?.status || "draft";
+    const stepIndex = {
+      draft: 0,
+      waiting_kaprodi: 1,
+      revisi_kaprodi: 1,
+      waiting_ppk: 2,
+      revisi_ppk: 2,
+      waiting_spi: 3,
+      ditolak_spi: 3,
+      disetujui: 4,
+      selesai: 4,
+    };
+    const currentStep = stepIndex[status] || 0;
+    const totalSteps = 4;
+    return (currentStep / totalSteps) * 100;
+  });
+
+  const getCurrentStepLabel = () => {
+    const status = rabData.value?.status || "draft";
+    const stepMap = {
+      draft: "Draft Awal",
+      waiting_kaprodi: "Menunggu Review Kaprodi",
+      revisi_kaprodi: "Revisi diperlukan",
+      waiting_ppk: "Menunggu Review PPK",
+      revisi_ppk: "Revisi diperlukan",
+      waiting_spi: "Menunggu Review SPI",
+      ditolak_spi: "Perlu Perbaikan",
+      disetujui: "Disetujui",
+      selesai: "Selesai & Pencairan",
+    };
+    return stepMap[status] || status;
+  };
+
+  const getCurrentStatusDescription = () => {
+    const status = rabData.value?.status || "draft";
+    const descMap = {
+      draft: "Draft sedang disiapkan, dokumen belum diajukan",
+      waiting_kaprodi: "Menunggu persetujuan dari Ketua Program Studi",
+      revisi_kaprodi: "Dokumen perlu diperbaiki sesuai catatan Kaprodi",
+      waiting_ppk: "Menunggu verifikasi anggaran dari PPK",
+      revisi_ppk: "Anggaran perlu disesuaikan dengan catatan PPK",
+      waiting_spi: "Sedang dalam proses audit oleh SPI",
+      ditolak_spi: "Dokumen perlu perbaikan sesuai temuan SPI",
+      disetujui: "Semua dokumen telah disetujui",
+      selesai: "Dana siap dicairkan dan kegiatan dapat dilaksanakan",
+    };
+    return descMap[status] || "Proses pengajuan berjalan";
+  };
 
   const goBack = () => navigateTo("/dashboard");
 
@@ -946,7 +1171,6 @@
         "editJudul",
         editJudul.value || rabData.value.judulKegiatan,
       );
-
       formData.append("tanggalMulai", editTanggalMulai.value);
       formData.append("tanggalSelesai", editTanggalSelesai.value);
 
@@ -1021,6 +1245,17 @@
   }
   .animate-fadeIn {
     animation: fadeIn 0.3s ease-out;
+  }
+  /* Additional keyframes for horizontal stepper */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
   ::-webkit-scrollbar {
     width: 8px;

@@ -125,16 +125,35 @@
             </td>
 
             <td class="px-6 py-4 whitespace-nowrap text-right">
-              <button
-                @click="openDetail(rab.pengajuanRabTable.id)"
-                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#3b5988] bg-[#3b5988]/10 hover:bg-[#3b5988] hover:text-white transition-all group/btn"
-              >
-                <span>Detail</span>
-                <Icon
-                  name="heroicons:eye"
-                  class="w-4 h-4 group-hover/btn:scale-110 transition-transform"
-                />
-              </button>
+              <div class="flex items-center justify-end gap-2">
+                <!-- Tombol Detail -->
+                <button
+                  @click="openDetail(rab.pengajuanRabTable.id)"
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#3b5988] bg-[#3b5988]/10 hover:bg-[#3b5988] hover:text-white transition-all group/btn"
+                >
+                  <span>Detail</span>
+                  <Icon
+                    name="heroicons:eye"
+                    class="w-4 h-4 group-hover/btn:scale-110 transition-transform"
+                  />
+                </button>
+
+                <!-- Tombol Upload Dokumentasi (muncul jika status disetujui & acara selesai) -->
+                <button
+                  v-if="
+                    rab.pengajuanRabTable.status === 'disetujui' &&
+                    isEventCompleted(rab.pengajuanRabTable.tanggalSelesai)
+                  "
+                  @click="handleUploadDokumentasi(rab.pengajuanRabTable.id)"
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-600 hover:text-white transition-all group/upload"
+                >
+                  <span>Upload</span>
+                  <Icon
+                    name="heroicons:cloud-arrow-up"
+                    class="w-4 h-4 group-hover/upload:translate-y-[-2px] transition-transform"
+                  />
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -194,6 +213,19 @@
       month: "short",
       year: "numeric",
     });
+  };
+
+  const isEventCompleted = (endDate: string | Date) => {
+    if (!endDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setHours(0, 0, 0, 0);
+    return end < today;
+  };
+
+  const handleUploadDokumentasi = (rabId: number) => {
+    navigateTo(`/dashboard/ormawa/detailRab/upload-dokumentasi/${rabId}`);
   };
 
   onMounted(async () => {
