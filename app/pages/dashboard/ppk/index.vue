@@ -501,7 +501,7 @@ const { data: dashData } = await useFetch<DashboardData>("/api/ppk/dashboard");
 const { data: ormawaData } = await useFetch<{
   data: FakultasApiResponse[];
   summary: SummaryData;
-}>("/api/ppk/ormawa-anggaran");
+}>("/api/ppk/dashboard/ormawa-anggaran");
 const { data: kegiatanData } = await useFetch<{
   success: boolean;
   summary: {
