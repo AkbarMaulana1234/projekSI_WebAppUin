@@ -152,13 +152,13 @@ export default defineEventHandler(async (event) => {
           statusTagihan: "SELESAI",
           updatedAt: mysqlTimestamp(),
         })
-        .where(eq(tagihanPencairanTable.id, id));
+        .where(eq(tagihanPencairanTable.id, tagihanId));
 
       await tx.insert(logDokumentasiTagihanTable).values({
-        tagihanId: id,
+        tagihanId,
         action: "pay",
         komentar: catatan?.trim() || "Pembayaran telah dilakukan",
-        userId: user.id,
+        userId: Number(user.id),
       });
     });
 
