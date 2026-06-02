@@ -1,0 +1,2 @@
+ALTER TABLE `kegiatan` MODIFY COLUMN `status_kegiatan` enum('BELUM_DILAKSANAKAN','SEDANG_DILAKSANAKAN','SELESAI','LUNAS') NOT NULL DEFAULT 'BELUM_DILAKSANAKAN';--> statement-breakpoint
+ALTER TABLE `kegiatan` MODIFY COLUMN `isi_catatan` text;

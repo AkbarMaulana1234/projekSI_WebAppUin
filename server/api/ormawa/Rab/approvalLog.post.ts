@@ -58,7 +58,7 @@ export default defineEventHandler(async (event) => {
     .innerJoin(usersTable, eq(usersTable.id, approvalLogTable.actorId))
     .where(eq(approvalLogTable.pengajuanRabId, rabId))
     .orderBy(desc(approvalLogTable.createdAt));
-  console.log(applog);
+
   return {
     success: true,
     data: applog,

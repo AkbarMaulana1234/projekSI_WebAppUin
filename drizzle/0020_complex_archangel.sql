@@ -1,0 +1,1 @@
+ALTER TABLE `pengajuan_rab` MODIFY COLUMN `status` enum('draft','waiting_kaprodi','revisi_kaprodi','waiting_ppk','revisi_ppk','waiting_spi','ditolak_spi','disetujui','lunas_ppk','selesai_spi') DEFAULT 'draft';

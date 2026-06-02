@@ -113,6 +113,104 @@
       "when": 1778428119541,
       "tag": "0015_glossy_korath",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "5",
+      "when": 1779508148670,
+      "tag": "0016_fair_purifiers",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "5",
+      "when": 1779512371586,
+      "tag": "0017_first_kree",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1779613616333,
+      "tag": "0018_wide_tarot",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "5",
+      "when": 1779723065440,
+      "tag": "0019_petite_silver_centurion",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "5",
+      "when": 1779813261062,
+      "tag": "0020_complex_archangel",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "5",
+      "when": 1779874498563,
+      "tag": "0021_burly_cammi",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "5",
+      "when": 1779948113656,
+      "tag": "0022_workable_madame_masque",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "5",
+      "when": 1780068661126,
+      "tag": "0023_neat_romulus",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "5",
+      "when": 1780071659018,
+      "tag": "0024_confused_plazm",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "5",
+      "when": 1780075406499,
+      "tag": "0025_medical_ultimates",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "5",
+      "when": 1780214221584,
+      "tag": "0026_steep_sister_grimm",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "5",
+      "when": 1780305666803,
+      "tag": "0027_talented_whiplash",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "5",
+      "when": 1780325608198,
+      "tag": "0028_hesitant_toro",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "5",
+      "when": 1780329005611,
+      "tag": "0029_low_captain_america",
+      "breakpoints": true
     }
   ]
 }

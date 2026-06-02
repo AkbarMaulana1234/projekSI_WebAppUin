@@ -1,67 +1,61 @@
 // stores/ormawa/uploadDokumen.ts
 import { defineStore } from "pinia";
+import { useDokumentasiStore } from "./allDokumen";
 
 export const useKegiatanStore = defineStore("kegiatan", {
   state: () => ({
-    dokumentasiList: [] as any[],
-    loading: false,
+    // State untuk indikator loading saat upload
     dokumentasiUploading: false,
     barangUploading: false,
     jasaUploading: false,
+
+    // State untuk notifikasi popup
     popupMessage: "",
     popupVisible: false,
 
-    // Pagination state
-    currentPage: 1,
-    perPage: 5,
-    totalItems: 0,
-    totalPages: 0,
+    // Data kegiatan (jika diperlukan oleh parent)
+    loading: false,
+    kegiatan: null as any,
+    dokumentasiList: [] as any[],
+    barangList: [] as any[],
+    jasaList: [] as any[],
+
+    // Form data yang sesuai dengan database
+    formBarang: {
+      kegiatanId: null as number | null,
+      tokoNama: "",
+      tokoAlamat: "",
+      namaPenerima: "",
+      rekeningPenerima: "",
+      bankPenerima: "",
+      nominal: 0,
+      fotoStruk: null as any,
+      fotoBarang: null as any,
+    },
+
+    formJasa: {
+      kegiatanId: null as number | null,
+      namaPenerima: "",
+      rekeningPenerima: "",
+      bankPenerima: "",
+      nominal: 0,
+      skNomor: "",
+      skFile: null as any,
+      spmtNomor: "",
+      spmtFile: null as any,
+      amprahNomor: "",
+      amprahFile: null as any,
+      npwpNomor: "",
+      npwpFile: null as any,
+      ktpNomor: "",
+      ktpFile: null as any,
+      bukuRekeningFile: null as any,
+    },
   }),
 
   actions: {
-    async fetchAllUploads(kegiatanId: number, page?: number, limit?: number) {
-      this.loading = true;
-      const reqPage = page ?? this.currentPage;
-      const reqLimit = limit ?? this.perPage;
-
-      try {
-        const response = await $fetch(
-          `/api/ormawa/dokumentasi/getAllDokumentasi`,
-          {
-            method: "POST",
-            body: {
-              kegiatanId,
-              page: reqPage,
-              row: reqLimit,
-            },
-          },
-        );
-
-        this.dokumentasiList = response.data;
-        this.totalItems = response.total;
-        this.currentPage = response.page;
-        this.perPage = response.row;
-        this.totalPages =
-          response.totalPages ?? Math.ceil(response.total / response.row);
-      } catch (err) {
-        console.error(err);
-        alert("Gagal memuat data kegiatan");
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    async changePage(kegiatanId: number, page: number) {
-      if (page < 1 || page > this.totalPages) return;
-      await this.fetchAllUploads(kegiatanId, page, this.perPage);
-    },
-
-    async changePerPage(kegiatanId: number, limit: number) {
-      this.perPage = limit;
-      await this.fetchAllUploads(kegiatanId, 1, limit);
-    },
-
     async submitDokumentasi(fd: FormData) {
+      const dokumentasiStore = useDokumentasiStore();
       this.dokumentasiUploading = true;
       try {
         await $fetch("/api/ormawa/dokumentasi/dokumentasiKegiatan", {
@@ -70,14 +64,11 @@ export const useKegiatanStore = defineStore("kegiatan", {
         });
         this.popupMessage = "Berhasil mengupload dokumentasi kegiatan";
         this.popupVisible = true;
-        const kegiatanId = fd.get("kegiatanId") as string;
+
+        // Refresh list dokumentasi
+        const kegiatanId = Number(fd.get("kegiatanId"));
         if (kegiatanId) {
-          // Refresh halaman yang sedang aktif
-          await this.fetchAllUploads(
-            parseInt(kegiatanId),
-            this.currentPage,
-            this.perPage,
-          );
+          await dokumentasiStore.refreshDokumentasi(kegiatanId);
         }
       } catch {
         alert("Gagal upload dokumentasi");
@@ -87,6 +78,7 @@ export const useKegiatanStore = defineStore("kegiatan", {
     },
 
     async submitBarang(fd: FormData) {
+      const dokumentasiStore = useDokumentasiStore();
       this.barangUploading = true;
       try {
         await $fetch("/api/ormawa/dokumentasi/dokumentasiBarang", {
@@ -95,13 +87,10 @@ export const useKegiatanStore = defineStore("kegiatan", {
         });
         this.popupMessage = "Berhasil mengupload barang";
         this.popupVisible = true;
-        const kegiatanId = fd.get("kegiatanId") as string;
+
+        const kegiatanId = Number(fd.get("kegiatanId"));
         if (kegiatanId) {
-          await this.fetchAllUploads(
-            parseInt(kegiatanId),
-            this.currentPage,
-            this.perPage,
-          );
+          await dokumentasiStore.refreshDokumentasi(kegiatanId);
         }
       } catch {
         alert("Gagal upload barang");
@@ -111,6 +100,7 @@ export const useKegiatanStore = defineStore("kegiatan", {
     },
 
     async submitJasa(fd: FormData) {
+      const dokumentasiStore = useDokumentasiStore();
       this.jasaUploading = true;
       try {
         await $fetch("/api/ormawa/dokumentasi/dokumentasiJasa", {
@@ -119,13 +109,9 @@ export const useKegiatanStore = defineStore("kegiatan", {
         });
         this.popupMessage = "Berhasil mengupload jasa";
         this.popupVisible = true;
-        const kegiatanId = fd.get("kegiatanId") as string;
+        const kegiatanId = Number(fd.get("kegiatanId"));
         if (kegiatanId) {
-          await this.fetchAllUploads(
-            parseInt(kegiatanId),
-            this.currentPage,
-            this.perPage,
-          );
+          await dokumentasiStore.refreshDokumentasi(kegiatanId);
         }
       } catch {
         alert("Gagal upload jasa");
@@ -135,33 +121,103 @@ export const useKegiatanStore = defineStore("kegiatan", {
     },
 
     async deleteUpload(item: any) {
+      const dokumentasiStore = useDokumentasiStore();
       try {
-        if (item.jenis === "dokumentasi")
-          await $fetch(`/api/dokumentasi/${item.id}`, { method: "DELETE" });
-        else if (item.jenis === "barang")
-          await $fetch(`/api/barang/${item.id}`, { method: "DELETE" });
-        else if (item.jenis === "jasa")
-          await $fetch(`/api/jasa/${item.id}`, { method: "DELETE" });
+        await $fetch(`/api/ormawa/dokumentasi/dokumentasi`, {
+          method: "DELETE",
+          body: { id: item.id },
+        });
 
-        this.popupMessage = `Berhasil hapus ${item.jenisLabel}`;
-        this.popupVisible = true;
-
-        // Refresh halaman yang sedang aktif
-        const kegiatanId = item.kegiatanId; // pastikan item memiliki kegiatanId
-        if (kegiatanId) {
-          await this.fetchAllUploads(
-            kegiatanId,
-            this.currentPage,
-            this.perPage,
+        if (item.kegiatanId) {
+          await dokumentasiStore.refreshDokumentasi(
+            item.kegiatanId,
+            dokumentasiStore.currentPage,
+            dokumentasiStore.perPage,
           );
         }
-      } catch {
-        alert("Gagal hapus");
+
+        this.popupMessage = `Berhasil hapus ${item.jenisLabel || "dokumentasi"}`;
+        this.popupVisible = true;
+        return { success: true };
+      } catch (error) {
+        console.error("Gagal hapus:", error);
+        this.popupMessage = "Gagal menghapus dokumentasi";
+        this.popupVisible = true;
+        return { success: false };
       }
+    },
+
+    async updateDokumentasi(fd: FormData, kegiatanId: number) {
+      const dokumentasiStore = useDokumentasiStore();
+      try {
+        const response = await $fetch(`/api/ormawa/dokumentasi/dokumentasi`, {
+          method: "PATCH",
+          body: fd,
+        });
+        console.log(response);
+        if (kegiatanId) {
+          await dokumentasiStore.refreshDokumentasi(
+            kegiatanId,
+            dokumentasiStore.currentPage,
+            dokumentasiStore.perPage,
+          );
+        }
+
+        this.popupMessage = "Dokumentasi berhasil diperbarui";
+        this.popupVisible = true;
+        return { success: true };
+      } catch (error) {
+        console.error("Gagal update:", error);
+        this.popupMessage = "Gagal memperbarui dokumentasi";
+        this.popupVisible = true;
+        return { success: false };
+      }
+    },
+
+    resetForms() {
+      this.formBarang = {
+        kegiatanId: null,
+        tokoNama: "",
+        tokoAlamat: "",
+        namaPenerima: "",
+        rekeningPenerima: "",
+        bankPenerima: "",
+        nominal: 0,
+        fotoStruk: null,
+        fotoBarang: null,
+      };
+      this.formJasa = {
+        kegiatanId: null,
+        namaPenerima: "",
+        rekeningPenerima: "",
+        bankPenerima: "",
+        nominal: 0,
+        skNomor: "",
+        skFile: null,
+        spmtNomor: "",
+        spmtFile: null,
+        amprahNomor: "",
+        amprahFile: null,
+        npwpNomor: "",
+        npwpFile: null,
+        ktpNomor: "",
+        ktpFile: null,
+        bukuRekeningFile: null,
+      };
     },
 
     closePopup() {
       this.popupVisible = false;
+    },
+
+    // Method dummy untuk fetch data kegiatan jika diperlukan (untuk detail page)
+    async fetchKegiatan(id: number) {
+      this.loading = true;
+      try {
+        // Implementasi fetch kegiatan jika ada API-nya
+      } finally {
+        this.loading = false;
+      }
     },
   },
 });

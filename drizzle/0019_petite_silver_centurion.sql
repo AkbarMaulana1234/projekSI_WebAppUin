@@ -1,0 +1,1 @@
+ALTER TABLE `dokumentasi_kegiatan` ADD `status` boolean DEFAULT false;

@@ -1,5 +1,6 @@
 import { mysqlTable, bigint, varchar } from "drizzle-orm/mysql-core";
 import { programStudiTable } from "./programStudiSchema";
+import { fakultasTable } from "./fakultasSchema";
 
 export const ormawaTable = mysqlTable("ormawa", {
   id: bigint("id", { mode: "number" }).primaryKey().autoincrement(),
@@ -8,10 +9,17 @@ export const ormawaTable = mysqlTable("ormawa", {
   totalAnggaran: bigint("totalAnggaran", { mode: "number" })
     .default(0)
     .notNull(),
-  prodiId: bigint("prodi_id", { mode: "number" })
+  fakultasId: bigint("fakultas_id", { mode: "number" })
     .notNull()
-    .references(() => programStudiTable.id, {
+    .references(() => fakultasTable.id, {
       onDelete: "restrict",
       onUpdate: "cascade",
     }),
+  prodiId: bigint("prodi_id", { mode: "number" }).references(
+    () => programStudiTable.id,
+    {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    },
+  ),
 });

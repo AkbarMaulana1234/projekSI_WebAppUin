@@ -1,12 +1,16 @@
 import { useDrizzle } from "~~/server/db";
-import { dokumentasiKegiatanTable } from "~~/server/db/schema";
-import { createFilePath } from "#imports"; // util nuxt js
+import { tagihanPencairanTable } from "~~/server/db/schema";
+import { createFilePath } from "#imports";
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { createEnkripsi } from "~~/server/utils/enkripsiData";
 
 export default defineEventHandler(async (event) => {
   const db = useDrizzle();
   const formData = await readMultipartFormData(event);
+
+  console.log(formData);
+
   if (!formData || formData.length === 0) {
     throw createError({
       statusCode: 400,
@@ -19,53 +23,47 @@ export default defineEventHandler(async (event) => {
     return field && field.data ? Buffer.from(field.data).toString("utf-8") : "";
   };
 
+  const getFile = (name: string) => {
+    return formData.find((f) => f.name === name);
+  };
+
   const kegiatanId = getField("kegiatanId");
-  const deskripsi = getField("deskripsi");
-  const namaPenyedia = getField("namaPenyedia");
-  const nomorRekening = getField("nomorRekening");
-  const namaPemilikRekening = getField("namaPemilikRekening");
-  const status = getField("status") || "draft";
+  const namaPenerima = getField("namaPenerima");
+  const rekeningPenerima = getField("rekeningPenerima");
+  const bankPenerima = getField("bankPenerima");
+  const nominal = getField("nominal");
+  const skNomor = getField("skNomor");
 
-  const skField = formData.find((f) => f.name === "sk");
-  const spmtField = formData.find((f) => f.name === "spmt");
-  const amprahField = formData.find((f) => f.name === "amprah");
-  const npwpField = formData.find((f) => f.name === "npwp");
-  const ktpField = formData.find((f) => f.name === "ktp");
+  const skFile = getFile("skFile");
+  const bukuRekeningFile = getFile("bukuRekeningFile");
 
-  if (!skField || !spmtField || !amprahField || !npwpField || !ktpField) {
+  if (
+    !kegiatanId ||
+    !namaPenerima ||
+    !rekeningPenerima ||
+    !bankPenerima ||
+    !nominal ||
+    !skNomor ||
+    !skFile ||
+    !bukuRekeningFile
+  ) {
     throw createError({
       statusCode: 400,
-      message: "Semua file jasa wajib diupload",
+      message:
+        "Field bertanda * wajib diisi (kegiatanId, namaPenerima, rekeningPenerima, bankPenerima, nominal, skNomor, skFile, bukuRekeningFile)",
     });
   }
 
-  const skDir = await createFilePath("dokumentasi", "jasa", "");
-  const spmtDir = await createFilePath("dokumentasi", "jasa", "");
-  const amprahDir = await createFilePath("dokumentasi", "jasa", "");
-  const npwpDir = await createFilePath("dokumentasi", "jasa", "");
-  const ktpDir = await createFilePath("dokumentasi", "jasa", "");
+  const spmtNomor = getField("spmtNomor");
+  const amprahNomor = getField("amprahNomor");
+  const npwpNomor = getField("npwpNomor");
+  const ktpNomor = getField("ktpNomor");
+  const spmtFile = getFile("spmtFile");
+  const amprahFile = getFile("amprahFile");
+  const npwpFile = getFile("npwpFile");
+  const ktpFile = getFile("ktpFile");
 
-  const skName = Date.now() + "_sk_" + skField.filename;
-  const skPath = join(skDir, skName);
-  await writeFile(skPath, skField.data);
-
-  const spmtName = Date.now() + "_spmt_" + spmtField.filename;
-  const spmtPath = join(spmtDir, spmtName);
-  await writeFile(spmtPath, spmtField.data);
-
-  // simpan file Amprah
-  const amprahName = Date.now() + "_amprah_" + amprahField.filename;
-  const amprahPath = join(amprahDir, amprahName);
-  await writeFile(amprahPath, amprahField.data);
-
-  const npwpName = Date.now() + "_npwp_" + npwpField.filename;
-  const npwpPath = join(npwpDir, npwpName);
-  await writeFile(npwpPath, npwpField.data);
-
-  const ktpName = Date.now() + "_ktp_" + ktpField.filename;
-  const ktpPath = join(ktpDir, ktpName);
-  await writeFile(ktpPath, ktpField.data);
-
+  // User authentication
   const { user } = event.context;
   if (!user) {
     throw createError({
@@ -74,25 +72,57 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  const [hasil] = await db.insert(dokumentasiKegiatanTable).values({
+  const saveFile = async (
+    file: any,
+    prefix: string,
+  ): Promise<string | null> => {
+    if (!file || !file.filename || !file.data) return null;
+    const dir = await createFilePath("dokumentasi", "jasa", "");
+    const ext = file.filename.split(".").pop();
+    const fileName = `${Date.now()}_${prefix}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
+    const filePath = join(dir, fileName);
+    await writeFile(filePath, file.data);
+    return filePath;
+  };
+
+  // Simpan semua file
+  const skUrl = await saveFile(skFile, "sk");
+  const bukuRekeningUrl = await saveFile(bukuRekeningFile, "buku_rekening");
+  const spmtUrl = spmtFile ? await saveFile(spmtFile, "spmt") : null;
+  const amprahUrl = amprahFile ? await saveFile(amprahFile, "amprah") : null;
+  const npwpUrl = npwpFile ? await saveFile(npwpFile, "npwp") : null;
+  const ktpUrl = ktpFile ? await saveFile(ktpFile, "ktp") : null;
+
+  // Insert ke database
+  const insertData = {
     kegiatanId: Number(kegiatanId),
-    deskripsi,
-    tipeDokumen: "JASA",
-    fileUrl: `${skPath};${spmtPath};${amprahPath};${npwpPath};${ktpPath}`,
-    uploadedBy: user.id,
-    namaPenyediaJasa: namaPenyedia,
-    nomorRekeningJasa: nomorRekening,
-    namaPemilikRekeningJasa: namaPemilikRekening,
-    skUrl: skPath,
-    spmtUrl: spmtPath,
-    amprahUrl: amprahPath,
-    npwpUrl: npwpPath,
-    ktpUrl: ktpPath,
-  });
+    tipeTagihan: "JASA",
+    skNomor: createEnkripsi(skNomor),
+    skFileUrl: skUrl,
+    spmtNomor: createEnkripsi(spmtNomor) || null,
+    spmtFileUrl: spmtUrl,
+    amprahNomor: createEnkripsi(amprahNomor) || null,
+    amprahFileUrl: amprahUrl,
+    npwpNomor: createEnkripsi(npwpNomor) || null,
+    npwpFileUrl: npwpUrl,
+    ktpNomor: createEnkripsi(ktpNomor) || null,
+    ktpFileUrl: ktpUrl,
+    namaPenerima: createEnkripsi(namaPenerima),
+    bankPenerima: createEnkripsi(bankPenerima),
+    rekeningPenerima: createEnkripsi(rekeningPenerima),
+    bukuRekeningFileUrl: bukuRekeningUrl,
+    nominal: nominal,
+    statusTagihan: "WAITING_PEMBAYARAN",
+    fakultasId: String(user.fakultasId),
+    prodiId: user.prodiId ? String(user.prodiId) : null,
+    createdBy: user.id,
+  };
+
+  const [hasil] = await db.insert(tagihanPencairanTable).values(insertData);
 
   return {
     success: true,
-    message: "Jasa berhasil diupload",
+    message: "Data jasa berhasil disimpan",
     data: hasil.insertId,
   };
 });

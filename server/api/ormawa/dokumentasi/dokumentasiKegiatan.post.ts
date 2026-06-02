@@ -23,7 +23,6 @@ export default defineEventHandler(async (event) => {
   const kegiatanId = getField("kegiatanId");
   const deskripsi = getField("deskripsi");
   const tipeDokumen = getField("tipeDokumen") || "DOKUMENTASI";
-  const status = getField("status") || "draft"; // sesuai enum Status
 
   const fileField = formData.find((f) => f.name === "file");
   if (!fileField) {
@@ -52,7 +51,10 @@ export default defineEventHandler(async (event) => {
     deskripsi,
     tipeDokumen,
     fileUrl: filePath,
+    fakultasId: String(user.fakultasId),
+    prodiId: user.prodiId ? String(user.prodiId) : null,
     uploadedBy: user.id,
+    status: "MENUNGGU",
   });
 
   return {

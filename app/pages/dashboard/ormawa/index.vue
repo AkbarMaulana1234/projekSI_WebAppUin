@@ -35,181 +35,249 @@
       </header>
 
       <!-- Dashboard Content -->
-      <main class="p-4 sm:p-6 lg:p-8 space-y-6">
-        <!-- Stats Cards -->
-        <div
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6"
-        >
-          <!-- Total RAB -->
+      <main class="p-4 sm:p-6 lg:p-8 space-y-8">
+        <!-- Welcome Section -->
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 mb-4 px-1">
+            Ringkasan Pengajuan
+          </h3>
           <div
-            class="relative overflow-hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-6 group hover:shadow-lg transition-all duration-300"
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6"
           >
+            <!-- Total RAB -->
             <div
-              class="absolute top-0 right-0 w-32 h-32 bg-[#3b5988]/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110"
-            ></div>
-            <div class="relative">
-              <div class="flex items-center justify-between mb-4">
-                <div class="p-3 rounded-xl bg-[#3b5988]/10 text-[#3b5988]">
-                  <Icon name="heroicons:document-text" class="w-6 h-6" />
-                </div>
-                <span
-                  class="flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full"
-                >
-                  <Icon name="heroicons:arrow-trending-up" class="w-3 h-3" />
-                </span>
-              </div>
-              <h3 class="text-2xl font-bold text-slate-900 mb-1">
-                {{ rabStore.summary?.total }}
-              </h3>
-              <p class="text-sm text-slate-500">Total RAB Diajukan</p>
-            </div>
-          </div>
-
-          <!-- Pending -->
-          <div
-            class="relative overflow-hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-6 group hover:shadow-lg transition-all duration-300"
-          >
-            <div
-              class="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110"
-            ></div>
-            <div class="relative">
-              <div class="flex items-center justify-between mb-4">
-                <div class="p-3 rounded-xl bg-amber-500/10 text-amber-600">
-                  <Icon name="heroicons:clock" class="w-6 h-6" />
-                </div>
-                <span class="text-xs font-medium text-slate-400">Menunggu</span>
-              </div>
-              <h3 class="text-2xl font-bold text-slate-900 mb-1">
-                {{ rabStore.summary?.proses }}
-              </h3>
-              <p class="text-sm text-slate-500">RAB Dalam Proses</p>
-            </div>
-          </div>
-
-          <!-- Rejected -->
-          <div
-            class="relative overflow-hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-6 group hover:shadow-lg transition-all duration-300"
-          >
-            <div
-              class="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110"
-            ></div>
-            <div class="relative">
-              <div class="flex items-center justify-between mb-4">
-                <div class="p-3 rounded-xl bg-red-500/10 text-red-600">
-                  <Icon name="heroicons:x-circle" class="w-6 h-6" />
-                </div>
-                <span class="text-xs font-medium text-slate-400"> </span>
-              </div>
-              <h3 class="text-2xl font-bold text-slate-900 mb-1">
-                {{ rabStore.summary?.ditolak }}
-              </h3>
-              <p class="text-sm text-slate-500">RAB Ditolak</p>
-            </div>
-          </div>
-
-          <!-- Completed -->
-          <div
-            class="relative overflow-hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-6 group hover:shadow-lg transition-all duration-300"
-          >
-            <div
-              class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110"
-            ></div>
-            <div class="relative">
-              <div class="flex items-center justify-between mb-4">
-                <div class="p-3 rounded-xl bg-emerald-500/10 text-emerald-600">
-                  <Icon name="heroicons:check-badge" class="w-6 h-6" />
-                </div>
-                <span
-                  class="flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full"
-                >
-                  <Icon name="heroicons:arrow-trending-up" class="w-3 h-3" />
-                </span>
-              </div>
-              <h3 class="text-2xl font-bold text-slate-900 mb-1">
-                {{ rabStore.summary?.selesai }}
-              </h3>
-              <p class="text-sm text-slate-500">RAB Selesai</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Quick Actions & Chart -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <!-- Quick Actions -->
-          <div
-            class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6"
-          >
-            <h3 class="text-lg font-bold text-slate-900 mb-4">Aksi Cepat</h3>
-            <div class="space-y-3">
-              <button
-                @click="nav('/dashboard/ormawa/pengajuanRab')"
-                class="w-full flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-[#3b5988] to-[#2d4570] text-white hover:shadow-lg hover:shadow-[#3b5988]/25 transition-all group"
-              >
-                <div class="p-2 rounded-lg bg-white/20">
-                  <Icon name="heroicons:plus" class="w-5 h-5" />
-                </div>
-                <div class="text-left">
-                  <p class="font-semibold">Ajukan RAB Baru</p>
-                  <p class="text-xs text-blue-100">
-                    Buat pengajuan anggaran baru
-                  </p>
-                </div>
-                <Icon
-                  name="heroicons:arrow-right"
-                  class="w-5 h-5 ml-auto group-hover:translate-x-1 transition-transform"
-                />
-              </button>
-
-              <!-- <button
-                class="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-slate-300 text-slate-600 hover:border-[#d1a82a] hover:text-[#d1a82a] hover:bg-[#d1a82a]/5 transition-all group"
-              >
-                <div
-                  class="p-2 rounded-lg bg-slate-100 group-hover:bg-[#d1a82a]/10"
-                >
-                  <Icon name="heroicons:folder-open" class="w-5 h-5" />
-                </div>
-                <div class="text-left">
-                  <p class="font-semibold">Lihat Arsip</p>
-                  <p class="text-xs text-slate-400">Akses dokumen lama</p>
-                </div>
-              </button> -->
-            </div>
-
-            <!-- Mini Calendar -->
-            <div class="mt-6 pt-6 border-t border-slate-100">
-              <div class="flex items-center gap-2 mb-3">
-                <Icon
-                  name="heroicons:calendar"
-                  class="w-5 h-5 text-[#d1a82a]"
-                />
-                <span class="font-semibold text-slate-900"
-                  >Jadwal Mendatang</span
-                >
-              </div>
-              <div class="space-y-2">
-                <div
-                  class="flex items-center gap-3 p-3 rounded-lg bg-[#d1a82a]/10 border border-[#d1a82a]/20"
-                >
-                  <div
-                    class="w-10 h-10 rounded-lg bg-[#d1a82a] flex flex-col items-center justify-center text-white text-xs font-bold"
+              class="relative overflow-hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-6 group hover:shadow-lg transition-all duration-300"
+            >
+              <div
+                class="absolute top-0 right-0 w-32 h-32 bg-[#3b5988]/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110"
+              ></div>
+              <div class="relative">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="p-3 rounded-xl bg-[#3b5988]/10 text-[#3b5988]">
+                    <Icon name="heroicons:document-text" class="w-6 h-6" />
+                  </div>
+                  <span
+                    class="flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full"
                   >
-                    <span>15</span>
-                    <span class="text-[10px] font-normal">Okt</span>
-                  </div>
-                  <div>
-                    <p class="text-sm font-semibold text-slate-900">
-                      Review RAB Q4
-                    </p>
-                    <p class="text-xs text-slate-500">10:00 - 12:00</p>
-                  </div>
+                    <Icon name="heroicons:arrow-trending-up" class="w-3 h-3" />
+                  </span>
                 </div>
+                <h3 class="text-2xl font-bold text-slate-900 mb-1">
+                  {{ rabStore.summary?.total }}
+                </h3>
+                <p class="text-sm text-slate-500">Total RAB Diajukan</p>
+              </div>
+            </div>
+
+            <!-- Pending -->
+            <div
+              class="relative overflow-hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-6 group hover:shadow-lg transition-all duration-300"
+            >
+              <div
+                class="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110"
+              ></div>
+              <div class="relative">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="p-3 rounded-xl bg-amber-500/10 text-amber-600">
+                    <Icon name="heroicons:clock" class="w-6 h-6" />
+                  </div>
+                  <span class="text-xs font-medium text-slate-400"
+                    >Menunggu</span
+                  >
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900 mb-1">
+                  {{ rabStore.summary?.proses }}
+                </h3>
+                <p class="text-sm text-slate-500">RAB Dalam Proses</p>
+              </div>
+            </div>
+
+            <!-- Rejected -->
+            <div
+              class="relative overflow-hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-6 group hover:shadow-lg transition-all duration-300"
+            >
+              <div
+                class="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110"
+              ></div>
+              <div class="relative">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="p-3 rounded-xl bg-red-500/10 text-red-600">
+                    <Icon name="heroicons:x-circle" class="w-6 h-6" />
+                  </div>
+                  <span class="text-xs font-medium text-slate-400"> </span>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900 mb-1">
+                  {{ rabStore.summary?.ditolak }}
+                </h3>
+                <p class="text-sm text-slate-500">RAB Ditolak</p>
+              </div>
+            </div>
+
+            <!-- Completed -->
+            <div
+              class="relative overflow-hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-6 group hover:shadow-lg transition-all duration-300"
+            >
+              <div
+                class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110"
+              ></div>
+              <div class="relative">
+                <div class="flex items-center justify-between mb-4">
+                  <div
+                    class="p-3 rounded-xl bg-emerald-500/10 text-emerald-600"
+                  >
+                    <Icon name="heroicons:check-badge" class="w-6 h-6" />
+                  </div>
+                  <span
+                    class="flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full"
+                  >
+                    <Icon name="heroicons:arrow-trending-up" class="w-3 h-3" />
+                  </span>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-900 mb-1">
+                  {{ rabStore.summary?.selesai }}
+                </h3>
+                <p class="text-sm text-slate-500">RAB Selesai</p>
               </div>
             </div>
           </div>
-          <!-- Statistics Chart -->
         </div>
+        <!-- Menu Utama (Quick Actions Grid) -->
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 mb-4 px-1">
+            Menu Utama ORMAWA
+          </h3>
+          <div
+            class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-8 gap-3 sm:gap-4"
+          >
+            <NuxtLink
+              to="/dashboard/ormawa/pengajuanRab"
+              class="flex flex-col items-center justify-start p-4 rounded-2xl bg-white border border-slate-200 hover:border-[#3b5988] hover:shadow-md transition-all group text-center"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-[#3b5988]/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
+              >
+                <Icon
+                  name="heroicons:document-plus"
+                  class="w-6 h-6 text-[#3b5988]"
+                />
+              </div>
+              <span class="text-xs font-bold text-slate-700 leading-tight"
+                >Pengajuan RAB</span
+              >
+            </NuxtLink>
+
+            <!-- <NuxtLink
+              to="/dashboard/ormawa/pencairan"
+              class="flex flex-col items-center justify-start p-4 rounded-2xl bg-white border border-slate-200 hover:border-emerald-500 hover:shadow-md transition-all group text-center"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
+              >
+                <Icon
+                  name="heroicons:currency-dollar"
+                  class="w-6 h-6 text-emerald-600"
+                />
+              </div>
+              <span class="text-xs font-bold text-slate-700 leading-tight"
+                >Tagihan Pencairan</span
+              >
+            </NuxtLink> -->
+
+            <NuxtLink
+              to="/dashboard/ormawa/lpg"
+              class="flex flex-col items-center justify-start p-4 rounded-2xl bg-white border border-slate-200 hover:border-blue-500 hover:shadow-md transition-all group text-center"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
+              >
+                <Icon
+                  name="heroicons:document-check"
+                  class="w-6 h-6 text-blue-600"
+                />
+              </div>
+              <span class="text-xs font-bold text-slate-700 leading-tight"
+                >LPG</span
+              >
+            </NuxtLink>
+
+            <NuxtLink
+              to="/dashboard/ormawa/monitoring"
+              class="flex flex-col items-center justify-start p-4 rounded-2xl bg-white border border-slate-200 hover:border-purple-500 hover:shadow-md transition-all group text-center"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
+              >
+                <Icon
+                  name="heroicons:chart-bar"
+                  class="w-6 h-6 text-purple-600"
+                />
+              </div>
+              <span class="text-xs font-bold text-slate-700 leading-tight"
+                >Monitoring Kegiatan</span
+              >
+            </NuxtLink>
+
+            <!-- <NuxtLink
+              to="/dashboard/ormawa/logs"
+              class="flex flex-col items-center justify-start p-4 rounded-2xl bg-white border border-slate-200 hover:border-slate-500 hover:shadow-md transition-all group text-center"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
+              >
+                <Icon name="heroicons:clock" class="w-6 h-6 text-slate-600" />
+              </div>
+              <span class="text-xs font-bold text-slate-700 leading-tight"
+                >Log & Riwayat</span
+              >
+            </NuxtLink> -->
+
+            <NuxtLink
+              to="/dashboard/ormawa/profile"
+              class="flex flex-col items-center justify-start p-4 rounded-2xl bg-white border border-slate-200 hover:border-slate-500 hover:shadow-md transition-all group text-center"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
+              >
+                <Icon
+                  name="heroicons:user-group"
+                  class="w-6 h-6 text-slate-600"
+                />
+              </div>
+              <span class="text-xs font-bold text-slate-700 leading-tight"
+                >Profil Ormawa</span
+              >
+            </NuxtLink>
+
+            <NuxtLink
+              to="/dashboard/ormawa/templates"
+              class="flex flex-col items-center justify-start p-4 rounded-2xl bg-white border border-slate-200 hover:border-orange-500 hover:shadow-md transition-all group text-center"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
+              >
+                <Icon
+                  name="heroicons:document-duplicate"
+                  class="w-6 h-6 text-orange-500"
+                />
+              </div>
+              <span class="text-xs font-bold text-slate-700 leading-tight"
+                >Template & Referensi</span
+              >
+            </NuxtLink>
+          </div>
+        </div>
+
+        <!-- Stats Cards -->
+
         <!-- RAB List -->
-        <ormawa-table-component></ormawa-table-component>
+        <div class="w-full">
+          <div class="flex items-center justify-between mb-4 px-1">
+            <h3 class="text-lg font-bold text-slate-900">
+              Daftar Pengajuan RAB
+            </h3>
+          </div>
+          <ormawa-table-component></ormawa-table-component>
+        </div>
       </main>
     </div>
 

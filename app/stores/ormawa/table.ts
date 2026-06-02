@@ -17,7 +17,7 @@ export const useTableStore = defineStore("tableStore", {
         },
         credentials: "include",
       });
-      console.log(res);
+
       this.table = res.data;
       this.total = res.total;
       this.offset = res.offset;

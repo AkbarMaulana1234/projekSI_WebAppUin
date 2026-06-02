@@ -12,6 +12,7 @@ import {
   pengajuanRabTable,
   usersTable,
   ormawaTable,
+  logDokumentasiTagihanTable,
 } from "~~/server/db/schema";
 import {
   decodeUrlId,
@@ -113,10 +114,22 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 422, statusMessage: `Tagihan tidak bisa dikembalikan. Status saat ini: ${tagihan.statusTagihan}` });
     }
 
-    await db
-      .update(tagihanPencairanTable)
-      .set({ statusTagihan: "DIKEMBALIKAN", updatedAt: mysqlTimestamp() })
-      .where(eq(tagihanPencairanTable.id, id));
+    await db.transaction(async (tx) => {
+      await tx
+        .update(tagihanPencairanTable)
+        .set({
+          statusTagihan: "DIKEMBALIKAN",
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(tagihanPencairanTable.id, id));
+
+      await tx.insert(logDokumentasiTagihanTable).values({
+        tagihanId: id,
+        action: "revisi",
+        komentar: catatan.trim(),
+        userId: Number(user.id),
+      });
+    });
 
     return {
       success: true,

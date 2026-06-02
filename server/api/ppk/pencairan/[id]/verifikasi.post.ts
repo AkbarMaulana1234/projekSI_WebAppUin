@@ -4,6 +4,8 @@ import {
   dokumentasiKegiatanTable,
   tagihanPencairanTable,
   usersTable,
+  ormawaTable,
+  logDokumentasiTagihanTable,
 } from "~~/server/db/schema";
 import {
   buildDokumenUpload,
@@ -197,13 +199,22 @@ export default defineEventHandler(async (event) => {
       await writePencairanMeta(tagihanId, { dokumentasiId });
     }
 
-    await db
-      .update(tagihanPencairanTable)
-      .set({
-        statusTagihan: statusBaru,
-        updatedAt: mysqlTimestamp(),
-      })
-      .where(eq(tagihanPencairanTable.id, tagihanId));
+    await db.transaction(async (tx) => {
+      await tx
+        .update(tagihanPencairanTable)
+        .set({
+          statusTagihan: statusBaru,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(tagihanPencairanTable.id, id));
+
+      await tx.insert(logDokumentasiTagihanTable).values({
+        tagihanId: id,
+        action: keputusan === "terverifikasi" ? "approve" : "revisi",
+        komentar: catatan?.trim() || (keputusan === "terverifikasi" ? "Dokumen diverifikasi" : "Perlu perbaikan"),
+        userId: Number(user.id),
+      });
+    });
 
     return {
       success: true,

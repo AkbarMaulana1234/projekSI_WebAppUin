@@ -82,7 +82,7 @@
                 </button>
                 <button
                   v-if="
-                    ['draft', 'revisi_kaprodi', 'revisi_ppk'].includes(
+                    ['draft', 'revisi_kaprodi', 'revisi_ppk', 'revisi_spi'].includes(
                       rabData.status,
                     )
                   "
@@ -640,7 +640,7 @@
               </button>
               <button
                 v-if="
-                  ['draft', 'revisi_kaprodi', 'revisi_ppk'].includes(
+                  ['draft', 'revisi_kaprodi', 'revisi_ppk', 'revisi_spi'].includes(
                     rabData.status,
                   )
                 "
@@ -966,7 +966,10 @@
       revisi_ppk: "Revisi PPK",
       waiting_spi: "Menunggu SPI",
       ditolak_spi: "Ditolak SPI",
+      revisi_spi: "Revisi SPI",
       disetujui: "Disetujui",
+      lunas_ppk: "Lunas (PPK)",
+      selesai_spi: "Selesai (SPI)",
       selesai: "Selesai",
     };
     return map[status] || status;
@@ -977,7 +980,14 @@
       draft: "bg-slate-100 text-slate-700 border-slate-200",
       waiting_kaprodi: "bg-blue-50 text-blue-700 border-blue-200",
       revisi_kaprodi: "bg-amber-50 text-amber-700 border-amber-200",
+      waiting_ppk: "bg-indigo-50 text-indigo-700 border-indigo-200",
+      revisi_ppk: "bg-amber-50 text-amber-700 border-amber-200",
+      waiting_spi: "bg-violet-50 text-violet-700 border-violet-200",
+      revisi_spi: "bg-amber-50 text-amber-700 border-amber-200",
+      ditolak_spi: "bg-red-50 text-red-700 border-red-200",
       disetujui: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      lunas_ppk: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      selesai_spi: "bg-emerald-50 text-emerald-700 border-emerald-200",
       selesai: "bg-emerald-50 text-emerald-700 border-emerald-200",
     };
     return colors[status] || "bg-slate-100 text-slate-700";
@@ -988,7 +998,14 @@
       draft: "bg-slate-400",
       waiting_kaprodi: "bg-blue-500",
       revisi_kaprodi: "bg-amber-500",
+      waiting_ppk: "bg-indigo-500",
+      revisi_ppk: "bg-amber-500",
+      waiting_spi: "bg-violet-500",
+      revisi_spi: "bg-amber-500",
+      ditolak_spi: "bg-red-500",
       disetujui: "bg-emerald-500",
+      lunas_ppk: "bg-emerald-500",
+      selesai_spi: "bg-emerald-500",
       selesai: "bg-emerald-500",
     };
     return dots[status] || "bg-slate-400";
@@ -999,7 +1016,14 @@
       draft: "text-slate-600",
       waiting_kaprodi: "text-blue-600",
       revisi_kaprodi: "text-amber-600",
+      waiting_ppk: "text-indigo-600",
+      revisi_ppk: "text-amber-600",
+      waiting_spi: "text-violet-600",
+      revisi_spi: "text-amber-600",
+      ditolak_spi: "text-red-600",
       disetujui: "text-emerald-600",
+      lunas_ppk: "text-emerald-600",
+      selesai_spi: "text-emerald-600",
       selesai: "text-emerald-600",
     };
     return colors[status] || "text-slate-600";
@@ -1016,7 +1040,10 @@
       revisi_ppk: 2,
       waiting_spi: 3,
       ditolak_spi: 3,
+      revisi_spi: 3,
       disetujui: 4,
+      lunas_ppk: 4,
+      selesai_spi: 4,
       selesai: 4,
     };
     const currentStepIndex = statusToStepMap[status] ?? 0;
@@ -1040,22 +1067,23 @@
       {
         title: "Review SPI",
         description: "Audit oleh Satuan Pengawasan Internal",
-        date: status === "disetujui" || status === "selesai" ? "Selesai" : null,
+        date: currentStepIndex > 3 ? "Selesai" : null,
       },
       {
         title: "Pencairan Dana",
         description: "Anggaran disetujui dan siap dicairkan",
-        date: status === "selesai" ? "Selesai" : null,
+        date: ["disetujui", "lunas_ppk", "selesai_spi", "selesai"].includes(status) ? "Selesai" : null,
       },
     ];
 
     return steps.map((step, index) => {
       const isRevisi = status.includes("revisi") || status.includes("ditolak");
+      const isActuallyCompleted = index < currentStepIndex || (index === 4 && ["disetujui", "lunas_ppk", "selesai_spi", "selesai"].includes(status));
+      
       return {
         ...step,
         isActive: index === currentStepIndex,
-        isCompleted:
-          index < currentStepIndex || (index === 4 && status === "selesai"),
+        isCompleted: isActuallyCompleted,
         isError: index === currentStepIndex && isRevisi,
       };
     });
@@ -1072,7 +1100,10 @@
       revisi_ppk: 2,
       waiting_spi: 3,
       ditolak_spi: 3,
+      revisi_spi: 3,
       disetujui: 4,
+      lunas_ppk: 4,
+      selesai_spi: 4,
       selesai: 4,
     };
     const currentStep = stepIndex[status] || 0;
@@ -1085,12 +1116,15 @@
     const stepMap = {
       draft: "Draft Awal",
       waiting_kaprodi: "Menunggu Review Kaprodi",
-      revisi_kaprodi: "Revisi diperlukan",
+      revisi_kaprodi: "Revisi diperlukan Kaprodi",
       waiting_ppk: "Menunggu Review PPK",
-      revisi_ppk: "Revisi diperlukan",
+      revisi_ppk: "Revisi diperlukan PPK",
       waiting_spi: "Menunggu Review SPI",
-      ditolak_spi: "Perlu Perbaikan",
-      disetujui: "Disetujui",
+      ditolak_spi: "Ditolak oleh SPI",
+      revisi_spi: "Revisi diperlukan SPI",
+      disetujui: "Disetujui SPI",
+      lunas_ppk: "Dana Telah Cair (PPK)",
+      selesai_spi: "Selesai Audit SPI",
       selesai: "Selesai & Pencairan",
     };
     return stepMap[status] || status;
@@ -1102,11 +1136,14 @@
       draft: "Draft sedang disiapkan, dokumen belum diajukan",
       waiting_kaprodi: "Menunggu persetujuan dari Ketua Program Studi",
       revisi_kaprodi: "Dokumen perlu diperbaiki sesuai catatan Kaprodi",
-      waiting_ppk: "Menunggu verifikasi anggaran dari PPK",
+      waiting_ppk: "Menunggu verifikasi anggaran dari Pejabat Pembuat Komitmen",
       revisi_ppk: "Anggaran perlu disesuaikan dengan catatan PPK",
-      waiting_spi: "Sedang dalam proses audit oleh SPI",
-      ditolak_spi: "Dokumen perlu perbaikan sesuai temuan SPI",
-      disetujui: "Semua dokumen telah disetujui",
+      waiting_spi: "Sedang dalam proses audit oleh Satuan Pengawasan Internal",
+      revisi_spi: "Dokumen perlu diperbaiki sesuai temuan SPI",
+      ditolak_spi: "Dokumen ditolak oleh SPI, periksa catatan untuk detailnya",
+      disetujui: "Semua dokumen telah disetujui, menunggu pencairan",
+      lunas_ppk: "Dana anggaran telah berhasil dicairkan oleh PPK",
+      selesai_spi: "Seluruh rangkaian audit SPI telah selesai",
       selesai: "Dana siap dicairkan dan kegiatan dapat dilaksanakan",
     };
     return descMap[status] || "Proses pengajuan berjalan";

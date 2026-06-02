@@ -43,10 +43,12 @@
             </div>
             <input
               v-model="form.id_users"
-              type="number"
+              @input="errorMsg = ''"
+              type="text"
               required
               placeholder="Masukkan username"
               class="w-full h-10 pl-10 pr-4 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm shadow-sm"
+              :class="{ 'border-red-300 ring-1 ring-red-100 bg-red-50/20': errorMsg && errorMsg.includes('User ID') }"
             />
           </div>
         </div>
@@ -65,10 +67,12 @@
             </div>
             <input
               v-model="form.password"
+              @input="errorMsg = ''"
               type="password"
               required
               placeholder="Masukkan password"
               class="w-full h-10 pl-10 pr-10 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all text-sm shadow-sm"
+              :class="{ 'border-red-300 ring-1 ring-red-100 bg-red-50/20': errorMsg && errorMsg.includes('Password') }"
             />
           </div>
         </div>
@@ -104,8 +108,9 @@
 
         <p
           v-if="errorMsg"
-          class="text-red-500 text-[10px] text-center font-bold uppercase mt-1"
+          class="text-red-500 text-[10px] text-center font-bold uppercase mt-1 flex items-center justify-center gap-1"
         >
+          <Icon name="uil:exclamation-circle" size="14" />
           {{ errorMsg }}
         </p>
       </form>
@@ -141,7 +146,7 @@
     errorMsg.value = "";
 
     try {
-      const response = await $fetch("/api/registrasi/login", {
+      const response: any = await $fetch("/api/registrasi/login", {
         method: "POST",
         body: {
           id_users: form.id_users,
@@ -151,10 +156,12 @@
       });
       if (response.success) {
         navigateTo("/");
+      } else {
+        errorMsg.value = response.message || "Username atau Password salah!";
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Login Gagal:", err);
-      errorMsg.value = err.data?.message || "Username atau Password salah!";
+      errorMsg.value = err.data?.message || err.message || "Username atau Password salah!";
     } finally {
       pending.value = false;
     }

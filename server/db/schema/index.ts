@@ -13,7 +13,7 @@ import { pembayaranTable } from "../schema/PembayaranSchema";
 import { lpgTable } from "../schema/lpgSchema";
 import { revisiLpgLogTable } from "../schema/revisiLpgLogSchema";
 import { auditLogTable } from "../schema/auditLogSchema";
-
+import { logDokumentasiTagihanTable } from "./LogDokumentasiTagihanSchema";
 export {
   fakultasTable,
   programStudiTable,
@@ -28,6 +28,7 @@ export {
   lpgTable,
   revisiLpgLogTable,
   auditLogTable,
+  logDokumentasiTagihanTable,
 };
 
 // ============================================
@@ -56,6 +57,10 @@ export const ormawaRelations = relations(ormawaTable, (r) => ({
   programStudi: r.one(programStudiTable, {
     fields: [ormawaTable.prodiId],
     references: [programStudiTable.id],
+  }),
+  fakultas: r.one(fakultasTable, {
+    fields: [ormawaTable.fakultasId],
+    references: [fakultasTable.id],
   }),
   users: r.many(usersTable),
 }));
@@ -222,3 +227,27 @@ export const auditLogRelations = relations(auditLogTable, (r) => ({
     references: [usersTable.id],
   }),
 }));
+
+// ============================================
+// dokumentasi tagihan Log
+// ============================================
+export const logDokumentasiTagihanRelations = relations(
+  logDokumentasiTagihanTable,
+  ({ one }) => ({
+    // Relasi ke dokumentasi (opsional, bisa null)
+    dokumentasi: one(dokumentasiKegiatanTable, {
+      fields: [logDokumentasiTagihanTable.dokumentasiId],
+      references: [dokumentasiKegiatanTable.id],
+    }),
+    // Relasi ke tagihan (opsional, bisa null)
+    tagihan: one(tagihanPencairanTable, {
+      fields: [logDokumentasiTagihanTable.tagihanId],
+      references: [tagihanPencairanTable.id],
+    }),
+    // Relasi ke user yang melakukan aksi
+    user: one(usersTable, {
+      fields: [logDokumentasiTagihanTable.userId],
+      references: [usersTable.id],
+    }),
+  }),
+);

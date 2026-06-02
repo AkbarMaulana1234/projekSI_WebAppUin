@@ -1,0 +1,1 @@
+ALTER TABLE `log_dokumentasi_tagihan` MODIFY COLUMN `action` enum('review','approve','reject','pay','revisi') NOT NULL;

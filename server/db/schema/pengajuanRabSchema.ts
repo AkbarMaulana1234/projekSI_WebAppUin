@@ -9,7 +9,8 @@ import {
   date, // tambahkan date
 } from "drizzle-orm/mysql-core";
 import { usersTable } from "./usersSchema";
-
+import { fakultasTable } from "./fakultasSchema";
+import { programStudiTable } from "./programStudiSchema";
 export const statusEnum = [
   "draft",
   "waiting_kaprodi",
@@ -18,7 +19,9 @@ export const statusEnum = [
   "revisi_ppk",
   "waiting_spi",
   "ditolak_spi",
+  "revisi_spi",
   "disetujui",
+  "lunas_ppk",
   "selesai_spi",
 ] as const;
 export type StatusEnum = (typeof statusEnum)[number];
@@ -34,13 +37,19 @@ export const pengajuanRabTable = mysqlTable("pengajuan_rab", {
   judulKegiatan: varchar("judul_kegiatan", { length: 500 }).notNull(),
   deskripsi: text("deskripsi"),
   fileRabUrl: text("file_rab_url").notNull(),
-  fileTorUrl: text("file_tor_url").notNull(), // tambahan untuk file TOR
+  fileTorUrl: text("file_tor_url").notNull(),
   totalAnggaran: decimal("total_anggaran", {
     precision: 15,
     scale: 2,
   }).notNull(),
-  tanggalMulai: date("tanggal_mulai"), // tambahan tanggal mulai kegiatan
-  tanggalSelesai: date("tanggal_selesai"), // tambahan tanggal selesai kegiatan
+  fakultasId: varchar("fakultas_Id", { length: 50 })
+    .notNull()
+    .references(() => fakultasTable.id),
+  prodiId: varchar("prodi_id", { length: 50 }).references(
+    () => programStudiTable.id,
+  ),
+  tanggalMulai: date("tanggal_mulai"),
+  tanggalSelesai: date("tanggal_selesai"),
   status: mysqlEnum("status", statusEnum).default("draft"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

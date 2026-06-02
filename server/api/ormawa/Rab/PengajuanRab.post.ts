@@ -18,14 +18,14 @@ export default defineEventHandler(async (event) => {
         message: "Tidak ada data yang dikirim",
       });
     }
-
+    const { user } = event.context;
     const getField = (name: string): string => {
       const field = formData.find((f) => f.name === name);
       return field && field.data
         ? Buffer.from(field.data).toString("utf-8")
         : "";
     };
-
+    console.log(user);
     const nomorPengajuan = getField("nomorPengajuan");
     const usersId = getField("usersId");
     const judulKegiatan = getField("judulKegiatan");
@@ -162,6 +162,8 @@ export default defineEventHandler(async (event) => {
         fileRabUrl: relativePathRab,
         fileTorUrl: relativePathTor, // Field baru untuk menyimpan path TOR
         totalAnggaran,
+        fakultasId: user.fakultasId,
+        prodiId: user.prodiId,
         status: statusRaw as StatusEnum,
         createdAt: new Date(),
         updatedAt: new Date(),
