@@ -1,11 +1,6 @@
 // FILE: server/api/ppk/kegiatan/[id]/index.get.ts
-//
-// Pola mengikuti detailRab.post.ts milik ormawa:
-// - Cari RAB by id
-// - Validasi kepemilikan: ormawa pakai eq(usersId, user.id)
-//   PPK validasi: cek apakah usersId pengajuan masuk daftar ormawaUserIds se-fakultas
 
-import { eq, asc, inArray, and } from "drizzle-orm";
+import { eq, asc, and } from "drizzle-orm";
 import { useDrizzle } from "~~/server/db";
 import {
   pengajuanRabTable,
@@ -24,72 +19,33 @@ export default defineEventHandler(async (event) => {
     const db = useDrizzle();
     const { user } = event.context;
 
+    if (!user || user.role !== "ppk") {
+      throw createError({
+        statusCode: 403,
+        statusMessage: "Akses ditolak. Peran PPK diperlukan.",
+      });
+    }
+
     const fakultasId = user.fakultasId;
 
     if (!fakultasId) {
       throw createError({ statusCode: 403, statusMessage: "PPK tidak memiliki fakultas yang valid" });
     }
 
-    // Query bertahap — pola sama seperti ormawa, tidak pakai join untuk filter
-    // Step 1-3: dapat ormawaUserIds (sama seperti di index.get.ts)
-    const kaprodiList = await db
-      .select({ prodiId: usersTable.prodiId })
-      .from(usersTable)
-      .where(
-        and(
-          eq(usersTable.role, "kaprodi"),
-          eq(usersTable.fakultasId, fakultasId),
-        ),
-      );
-
-    const prodiIds = kaprodiList
-      .map((k) => k.prodiId)
-      .filter((id): id is number => id !== null);
-
-    if (prodiIds.length > 0) {
-      const ormawaRows = await db
-        .select({ id: ormawaTable.id })
-        .from(ormawaTable)
-        .where(inArray(ormawaTable.prodiId, prodiIds));
-
-      const ormawaIds = ormawaRows.map((o) => o.id);
-
-      if (ormawaIds.length > 0) {
-        const ormawaUsers = await db
-          .select({ usersId: usersTable.users_id })
-          .from(usersTable)
-          .where(inArray(usersTable.ormawaId, ormawaIds));
-
-        const ormawaUserIds = ormawaUsers.map((u) => u.usersId);
-
-        // Cek akses sebelum ambil detail — persis seperti detailRab.post.ts ormawa
-        // yang cek eq(usersId, user.id), PPK cek apakah ada di list
-        const aksesValid = await db.query.pengajuanRabTable.findFirst({
-          where: and(
-            eq(pengajuanRabTable.id, id),
-            inArray(pengajuanRabTable.usersId, ormawaUserIds),
-          ),
-        });
-
-        if (!aksesValid) {
-          throw createError({
-            statusCode: 403,
-            statusMessage: "Anda tidak memiliki akses ke pengajuan ini",
-          });
-        }
-      }
-    }
-
-    // Ambil detail RAB — sama seperti detailRab.post.ts ormawa
     const rab = await db.query.pengajuanRabTable.findFirst({
-      where: eq(pengajuanRabTable.id, id),
+      where: and(
+        eq(pengajuanRabTable.id, id),
+        eq(pengajuanRabTable.fakultasId, String(fakultasId)),
+      ),
     });
 
     if (!rab) {
-      throw createError({ statusCode: 404, statusMessage: "Pengajuan tidak ditemukan" });
+      throw createError({
+        statusCode: 404,
+        statusMessage: "Pengajuan tidak ditemukan atau Anda tidak memiliki akses",
+      });
     }
 
-    // Ambil info pengaju dan ormawa
     const pengajuInfo = await db.query.usersTable.findFirst({
       where: eq(usersTable.users_id, rab.usersId),
     });
@@ -100,7 +56,6 @@ export default defineEventHandler(async (event) => {
         })
       : null;
 
-    // Ambil riwayat approval — sama seperti approvalLog.post.ts ormawa
     const riwayat = await db
       .select({
         approvalLog: approvalLogTable,
@@ -140,7 +95,6 @@ export default defineEventHandler(async (event) => {
           kode: ormawaInfo?.kode ?? "",
           totalAnggaran: ormawaInfo?.totalAnggaran ?? 0,
         },
-        // Struktur riwayat sama persis dengan approvalLog.post.ts ormawa
         riwayat: riwayat.map((r) => ({
           id: r.approvalLog.id,
           action: r.approvalLog.action,

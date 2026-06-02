@@ -45,7 +45,7 @@
                 <option value="menunggu">Menunggu</option>
                 <option value="disetujui">Disetujui</option>
                 <option value="revisi">Revisi</option>
-                <option value="ditolak">Ditolak</option>
+                <option value="ditolak">Ditolak SPI</option>
                 <option value="dikirim_spi">Dikirim ke SPI</option>
               </select>
             </div>
@@ -135,7 +135,7 @@
             </div>
           </div>
 
-          <!-- Ditolak -->
+          <!-- Ditolak SPI -->
           <div
             class="relative overflow-hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-6 group hover:shadow-lg transition-all duration-300"
           >
@@ -151,7 +151,7 @@
               <h3 class="text-2xl font-bold text-slate-900 mb-1">
                 {{ countByStatus("ditolak") }}
               </h3>
-              <p class="text-sm text-slate-500">Ditolak</p>
+              <p class="text-sm text-slate-500">Ditolak SPI</p>
               <span
                 class="inline-block mt-1 text-xs text-red-600 bg-red-50 px-2 py-0.5 rounded-full"
                 >Tidak diproses</span
@@ -607,13 +607,6 @@
                   <Icon name="heroicons:arrow-path" class="w-5 h-5" /> Minta
                   Revisi
                 </button>
-                <button
-                  @click="handleDecision('tolak')"
-                  :disabled="loadingAction"
-                  class="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition"
-                >
-                  <Icon name="heroicons:x-circle" class="w-5 h-5" /> Tolak
-                </button>
               </div>
             </div>
 
@@ -703,7 +696,6 @@
         return "dikirim_spi";
       case "ditolak_spi":
       case "ditolak":
-      case "tolak":
         return "ditolak";
       case "disetujui":
         return "disetujui";
@@ -885,7 +877,7 @@
       menunggu: "Menunggu",
       disetujui: "Disetujui",
       revisi: "Revisi",
-      ditolak: "Ditolak",
+      ditolak: "Ditolak SPI",
       dikirim_spi: "Dikirim ke SPI",
     };
     return map[normalizeStatus(s) || "menunggu"] || "-";

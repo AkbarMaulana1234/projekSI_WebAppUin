@@ -4,9 +4,9 @@
 // - Query bertahap tanpa join untuk filter
 // - Subquery SQL untuk hitung agregat per ormawa
 
-import { eq, sql, inArray, and } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { useDrizzle } from "~~/server/db";
-import { ormawaTable, usersTable } from "~~/server/db/schema";
+import { ormawaTable } from "~~/server/db/schema";
 
 export default defineEventHandler(async (event) => {
   try {
@@ -16,29 +16,6 @@ export default defineEventHandler(async (event) => {
     const fakultasId = user.fakultasId;
 
     if (!fakultasId) {
-      return {
-        success: true,
-        summary: { totalAnggaranKeseluruhan: 0, totalTerpakaiKeseluruhan: 0, totalSisaKeseluruhan: 0 },
-        data: [],
-      };
-    }
-
-    // Step 1-2: dapat ormawaIds se-fakultas PPK
-    const kaprodiList = await db
-      .select({ prodiId: usersTable.prodiId })
-      .from(usersTable)
-      .where(
-        and(
-          eq(usersTable.role, "kaprodi"),
-          eq(usersTable.fakultasId, fakultasId),
-        ),
-      );
-
-    const prodiIds = kaprodiList
-      .map((k) => k.prodiId)
-      .filter((id): id is number => id !== null);
-
-    if (prodiIds.length === 0) {
       return {
         success: true,
         summary: { totalAnggaranKeseluruhan: 0, totalTerpakaiKeseluruhan: 0, totalSisaKeseluruhan: 0 },
@@ -93,7 +70,7 @@ export default defineEventHandler(async (event) => {
         `,
       })
       .from(ormawaTable)
-      .where(inArray(ormawaTable.prodiId, prodiIds))
+      .where(eq(ormawaTable.fakultasId, fakultasId))
       .orderBy(ormawaTable.nama);
 
     const totalAnggaranKeseluruhan = ormawaList.reduce(
