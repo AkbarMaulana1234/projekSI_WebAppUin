@@ -1,7 +1,7 @@
 // FILE: server/api/ppk/dashboard/index.get.ts
 
 import { eq, sql, ne, and, inArray } from "drizzle-orm";
-import { pengajuanRabTable, usersTable, ormawaTable } from "~~/server/db/schema";
+import { pengajuanRabTable } from "~~/server/db/schema";
 import { useDrizzle } from "~~/server/db";
 
 export default defineEventHandler(async (event) => {
@@ -9,78 +9,30 @@ export default defineEventHandler(async (event) => {
     const db = useDrizzle();
     const { user } = event.context;
 
-    // Ambil fakultas_id PPK dari context — sama seperti ormawa ambil user.id langsung
+    if (!user || user.role !== "ppk") {
+      throw createError({
+        statusCode: 403,
+        statusMessage: "Akses ditolak. Peran PPK diperlukan.",
+      });
+    }
+
     const fakultasId = user.fakultasId;
 
     if (!fakultasId) {
       return { total: 0, menunggu: 0, disetujui: 0, revisi: 0, ditolak: 0 };
     }
 
-    // Step 1: Cari semua ormawa_id yang prodi_id-nya dimiliki kaprodi se-fakultas PPK
-    // Pola sama seperti ormawa: query bertahap, tidak join untuk filter
-    const kaprodiList = await db
-      .select({ prodiId: usersTable.prodiId })
-      .from(usersTable)
-      .where(
-        and(
-          eq(usersTable.role, "kaprodi"),
-          eq(usersTable.fakultasId, fakultasId),
-        ),
-      );
+    const byFakultas = eq(pengajuanRabTable.fakultasId, String(fakultasId));
 
-    const prodiIds = kaprodiList
-      .map((k) => k.prodiId)
-      .filter((id): id is number => id !== null);
-
-    if (prodiIds.length === 0) {
-      return { total: 0, menunggu: 0, disetujui: 0, revisi: 0, ditolak: 0 };
-    }
-
-    // Step 2: Cari ormawa yang prodi_id-nya masuk list
-    const ormawaList = await db
-      .select({ id: ormawaTable.id })
-      .from(ormawaTable)
-      .where(inArray(ormawaTable.prodiId, prodiIds));
-
-    const ormawaIds = ormawaList.map((o) => o.id);
-
-    if (ormawaIds.length === 0) {
-      return { total: 0, menunggu: 0, disetujui: 0, revisi: 0, ditolak: 0 };
-    }
-
-    // Step 3: Cari users_id (varchar) dari user ormawa — sama seperti ormawa pakai user.id
-    const ormawaUsers = await db
-      .select({ usersId: usersTable.users_id })
-      .from(usersTable)
-      .where(inArray(usersTable.ormawaId, ormawaIds));
-
-    const ormawaUserIds = ormawaUsers.map((u) => u.usersId);
-
-    if (ormawaUserIds.length === 0) {
-      return { total: 0, menunggu: 0, disetujui: 0, revisi: 0, ditolak: 0 };
-    }
-
-    // Step 4: Hitung pengajuan — pola sama seperti ormawa pakai eq(usersId, user.id)
-    // tapi untuk PPK pakai inArray(usersId, ormawaUserIds)
     const [total, menunggu, disetujui, revisi, ditolak] = await Promise.all([
       db
         .select({ count: sql<number>`count(*)` })
         .from(pengajuanRabTable)
-        .where(
-          and(
-            ne(pengajuanRabTable.status, "draft"),
-            inArray(pengajuanRabTable.usersId, ormawaUserIds),
-          ),
-        ),
+        .where(and(ne(pengajuanRabTable.status, "draft"), byFakultas)),
       db
         .select({ count: sql<number>`count(*)` })
         .from(pengajuanRabTable)
-        .where(
-          and(
-            eq(pengajuanRabTable.status, "waiting_ppk"),
-            inArray(pengajuanRabTable.usersId, ormawaUserIds),
-          ),
-        ),
+        .where(and(eq(pengajuanRabTable.status, "waiting_ppk"), byFakultas)),
       db
         .select({ count: sql<number>`count(*)` })
         .from(pengajuanRabTable)
@@ -90,28 +42,19 @@ export default defineEventHandler(async (event) => {
               "waiting_spi",
               "disetujui",
               "selesai_spi",
+              "lunas_ppk",
             ]),
-            inArray(pengajuanRabTable.usersId, ormawaUserIds),
+            byFakultas,
           ),
         ),
       db
         .select({ count: sql<number>`count(*)` })
         .from(pengajuanRabTable)
-        .where(
-          and(
-            eq(pengajuanRabTable.status, "revisi_ppk"),
-            inArray(pengajuanRabTable.usersId, ormawaUserIds),
-          ),
-        ),
+        .where(and(eq(pengajuanRabTable.status, "revisi_ppk"), byFakultas)),
       db
         .select({ count: sql<number>`count(*)` })
         .from(pengajuanRabTable)
-        .where(
-          and(
-            eq(pengajuanRabTable.status, "ditolak_spi"),
-            inArray(pengajuanRabTable.usersId, ormawaUserIds),
-          ),
-        ),
+        .where(and(eq(pengajuanRabTable.status, "ditolak_spi"), byFakultas)),
     ]);
 
     return {
