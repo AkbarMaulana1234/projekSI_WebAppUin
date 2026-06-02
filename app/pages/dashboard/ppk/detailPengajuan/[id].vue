@@ -275,7 +275,7 @@
             <div>
               <label class="text-sm font-semibold text-slate-700 block mb-1.5">
                 Catatan / Alasan
-                <span class="font-normal text-slate-400">(wajib untuk revisi & tolak)</span>
+                <span class="font-normal text-slate-400">(wajib untuk revisi)</span>
               </label>
               <textarea
                 v-model="catatan"
@@ -301,14 +301,6 @@
               >
                 <Icon name="heroicons:arrow-path" class="w-5 h-5" />
                 Minta Revisi
-              </button>
-              <button
-                @click="handleDecision('tolak')"
-                :disabled="actionLoading || !catatan.trim()"
-                class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl font-semibold transition text-sm"
-              >
-                <Icon name="heroicons:x-circle" class="w-5 h-5" />
-                Tolak Pengajuan
               </button>
             </div>
 
@@ -399,11 +391,11 @@ const successMsg = ref('')
 const errorMsg = ref('')
 
 const jumlahRevisi = computed(() =>
-  (detail.value?.riwayat || []).filter((r: any) => r.action === 'revisi' || r.action === 'ditolak').length
+  (detail.value?.riwayat || []).filter((r: any) => r.action === 'revisi').length
 )
 
 const lastRevisi = computed(() => {
-  const revisi = (detail.value?.riwayat || []).filter((r: any) => r.action === 'revisi' || r.action === 'ditolak')
+  const revisi = (detail.value?.riwayat || []).filter((r: any) => r.action === 'revisi')
   return revisi.length ? revisi[revisi.length - 1].createdAt : null
 })
 
@@ -442,7 +434,7 @@ const statusClass = (s?: string) => {
 const logIcon = (action?: string) => {
   const map: Record<string, string> = {
     disetujui: 'heroicons:check-circle', revisi: 'heroicons:arrow-path',
-    ditolak: 'heroicons:x-circle', submit: 'heroicons:arrow-up-tray',
+    submit: 'heroicons:arrow-up-tray',
   }
   return map[action || ''] || 'heroicons:ellipsis-horizontal-circle'
 }
@@ -451,7 +443,6 @@ const logIconClass = (action?: string) => {
   const map: Record<string, string> = {
     disetujui: 'bg-emerald-100 text-emerald-600',
     revisi: 'bg-amber-100 text-amber-600',
-    ditolak: 'bg-red-100 text-red-600',
   }
   return map[action || ''] || 'bg-slate-100 text-slate-500'
 }
@@ -460,7 +451,6 @@ const logLabel = (action?: string) => {
   const map: Record<string, string> = {
     disetujui: 'Disetujui oleh PPK — diteruskan ke SPI',
     revisi: 'Diminta revisi oleh PPK',
-    ditolak: 'Ditolak',
   }
   return map[action || ''] || action || '-'
 }
@@ -488,8 +478,8 @@ const reloadData = async () => {
 }
 
 const handleDecision = async (keputusan: string) => {
-  if ((keputusan === 'revisi' || keputusan === 'tolak') && !catatan.value.trim()) {
-    errorMsg.value = 'Catatan wajib diisi untuk revisi atau tolak.'
+  if (keputusan === 'revisi' && !catatan.value.trim()) {
+    errorMsg.value = 'Catatan wajib diisi untuk revisi.'
     return
   }
   actionLoading.value = true
@@ -502,7 +492,7 @@ const handleDecision = async (keputusan: string) => {
     })
     successMsg.value = keputusan === 'disetujui'
       ? 'Pengajuan disetujui dan diteruskan ke SPI.'
-      : keputusan === 'revisi' ? 'Pengajuan dikembalikan untuk revisi.' : 'Pengajuan ditolak.'
+      : 'Pengajuan dikembalikan untuk revisi.'
     await reloadData()
     setTimeout(() => router.back(), 1500)
   } catch (e: any) {

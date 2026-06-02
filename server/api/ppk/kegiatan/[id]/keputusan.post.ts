@@ -18,7 +18,6 @@ import {
 const KEPUTUSAN_MAP = {
   disetujui: { statusBaru: "waiting_spi" as const, action: "disetujui" },
   revisi:    { statusBaru: "revisi_ppk"  as const, action: "revisi"    },
-  tolak:     { statusBaru: "revisi_ppk"  as const, action: "ditolak"   },
 } as const;
 
 type Keputusan = keyof typeof KEPUTUSAN_MAP;
@@ -31,7 +30,7 @@ export default defineEventHandler(async (event) => {
     }
 
     const body = await readBody(event);
-    // field: "keputusan" — value: "disetujui" | "revisi" | "tolak"
+    // field: "keputusan" — value: "disetujui" | "revisi"
     const { keputusan, catatan } = body ?? {};
 
     if (!keputusan || !Object.keys(KEPUTUSAN_MAP).includes(keputusan)) {
@@ -41,10 +40,10 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    if ((keputusan === "revisi" || keputusan === "tolak") && !catatan?.trim()) {
+    if (keputusan === "revisi" && !catatan?.trim()) {
       throw createError({
         statusCode: 400,
-        statusMessage: "Catatan wajib diisi untuk keputusan revisi atau tolak",
+        statusMessage: "Catatan wajib diisi untuk keputusan revisi",
       });
     }
 
@@ -135,9 +134,7 @@ export default defineEventHandler(async (event) => {
       message:
         action === "disetujui"
           ? "Pengajuan berhasil disetujui dan diteruskan ke SPI"
-          : action === "revisi"
-          ? "Pengajuan dikembalikan untuk revisi"
-          : "Pengajuan ditolak",
+          : "Pengajuan dikembalikan untuk revisi",
       data: { pengajuanId: id, keputusan: action, statusBaru },
     };
   } catch (error: any) {

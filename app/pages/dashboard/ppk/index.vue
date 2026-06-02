@@ -613,7 +613,7 @@ const { data: kegiatanData } = await useFetch<{
         pct: Math.round(((d.revisi || 0) / total) * 100),
       },
       {
-        label: "Ditolak",
+        label: "Ditolak SPI",
         count: d.ditolak || 0,
         color: "#f87171",
         pct: Math.round(((d.ditolak || 0) / total) * 100),
