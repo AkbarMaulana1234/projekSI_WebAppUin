@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { dokumentasiKegiatanTable } from "~~/server/db/schema/dokumentasiSchema";
 import { tagihanPencairanTable } from "~~/server/db/schema/TagihanPencairanSchema";
 import { kegiatanTable } from "~~/server/db/schema/KegiatanSchema";
+import { auditLogTable } from "~~/server/db/schema";
 import { createFilePath } from "~~/server/utils/CreateFilePath";
 import { writeFile, unlink } from "node:fs/promises";
 import { join } from "node:path";
@@ -37,9 +38,9 @@ export default defineEventHandler(async (event) => {
   const realId = Number(idStr.replace("doc_", "").replace("tagihan_", ""));
 
   if (isTagihan) {
-    return await handleUpdateTagihan(db, realId, formData, getField);
+    return await handleUpdateTagihan(db, realId, formData, getField, event);
   } else {
-    return await handleUpdateDokumentasi(db, realId, formData, getField);
+    return await handleUpdateDokumentasi(db, realId, formData, getField, event);
   }
 });
 
@@ -48,6 +49,7 @@ async function handleUpdateTagihan(
   id: number,
   formData: any[],
   getField: (name: string) => string | undefined,
+  event: any,
 ) {
   const results = await db
     .select({
@@ -120,15 +122,6 @@ async function handleUpdateTagihan(
   for (const f of fileFields) {
     const fileData = formData.find((formField) => formField.name === f.name);
     if (fileData && fileData.data && fileData.filename) {
-      // Delete old file if exists
-      const oldPath = (oldDoc as any)[f.dbField];
-      if (oldPath) {
-        const fullOldPath = join(process.cwd(), oldPath);
-        if (fs.existsSync(fullOldPath)) {
-          await unlink(fullOldPath).catch(() => {});
-        }
-      }
-
       // Save new file
       const targetDir = await createFilePath("dokumentasi", f.category, "");
       const newFileName = `${Date.now()}_${f.name}_${fileData.filename}`;
@@ -143,6 +136,27 @@ async function handleUpdateTagihan(
     .set(updateData)
     .where(eq(tagihanPencairanTable.id, id));
 
+  await db.insert(auditLogTable).values({
+    tableName: "tagihan_pencairan",
+    recordId: id,
+    action: "REVISI_FILE",
+    oldData: {
+      dokumenUpload: fileFields.map((field) => ({
+        id: field.dbField,
+        nama: field.name,
+        url: (oldDoc as any)[field.dbField] || null,
+      })),
+    },
+    newData: {
+      dokumenUpload: fileFields.map((field) => ({
+        id: field.dbField,
+        nama: field.name,
+        url: updateData[field.dbField] || (oldDoc as any)[field.dbField] || null,
+      })),
+    },
+    userId: Number(event.context.user?.id || 0) || null,
+  });
+
   return { success: true, message: "Tagihan berhasil diperbarui" };
 }
 
@@ -151,6 +165,7 @@ async function handleUpdateDokumentasi(
   id: number,
   formData: any[],
   getField: (name: string) => string | undefined,
+  event: any,
 ) {
   const results = await db
     .select({
@@ -181,13 +196,6 @@ async function handleUpdateDokumentasi(
 
   const fileData = formData.find((f) => f.name === "file");
   if (fileData && fileData.data && fileData.filename) {
-    // Delete old file
-    if (oldDoc.fileUrl) {
-      const fullOldPath = join(process.cwd(), oldDoc.fileUrl);
-      if (fs.existsSync(fullOldPath)) {
-        await unlink(fullOldPath).catch(() => {});
-      }
-    }
     // Save new file
 
     const targetDir = await createFilePath("dokumentasi", "kegiatan", "");
@@ -203,6 +211,19 @@ async function handleUpdateDokumentasi(
       .update(dokumentasiKegiatanTable)
       .set(updateData)
       .where(eq(dokumentasiKegiatanTable.id, id));
+
+    await db.insert(auditLogTable).values({
+      tableName: "dokumentasi_kegiatan",
+      recordId: id,
+      action: "REVISI_FILE",
+      oldData: {
+        dokumenUpload: [{ id: "file", nama: "File Dokumentasi", url: oldDoc.fileUrl || null }],
+      },
+      newData: {
+        dokumenUpload: [{ id: "file", nama: "File Dokumentasi", url: updateData.fileUrl || oldDoc.fileUrl || null }],
+      },
+      userId: Number(event.context.user?.id || 0) || null,
+    });
   }
 
   return { success: true, message: "Dokumentasi berhasil diperbarui" };

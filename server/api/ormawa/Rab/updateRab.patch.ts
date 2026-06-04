@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { pengajuanRabTable } from "~~/server/db/schema";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { saveRevisionArchiveEntry } from "~~/server/utils/revisionArchive";
 
 export default defineEventHandler(async (event) => {
   const formdata = await readMultipartFormData(event);
@@ -35,6 +36,10 @@ export default defineEventHandler(async (event) => {
 
   const editFileRabBuffer = getFileBuffer("fileRab");
   const editFileTorBuffer = getFileBuffer("fileTor");
+  const getFileName = (name: string) => {
+    const field = formdata.find((f) => f.name === name);
+    return field?.filename || `${name}.pdf`;
+  };
 
   if (!rabId) {
     throw createError({
@@ -87,6 +92,25 @@ export default defineEventHandler(async (event) => {
     };
   }
 
+  const revisionDir = path.join("uploads", "revision-archive", String(rabId));
+  const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+  const newFileRabUrl = hasFileRab
+    ? path
+        .join(
+          revisionDir,
+          `${uniqueSuffix}-rab-${path.basename(getFileName("fileRab"))}`,
+        )
+        .replace(/\\/g, "/")
+    : existingRab.fileRabUrl;
+  const newFileTorUrl = hasFileTor
+    ? path
+        .join(
+          revisionDir,
+          `${uniqueSuffix}-tor-${path.basename(getFileName("fileTor"))}`,
+        )
+        .replace(/\\/g, "/")
+    : existingRab.fileTorUrl;
+
   try {
     await db
       .update(pengajuanRabTable)
@@ -95,6 +119,8 @@ export default defineEventHandler(async (event) => {
         totalAnggaran: anggaranBaru,
         tanggalMulai: new Date(tanggalMulai),
         tanggalSelesai: new Date(tanggalSelesai),
+        fileRabUrl: newFileRabUrl,
+        fileTorUrl: newFileTorUrl,
         status: "waiting_kaprodi", // Ubah status agar divalidasi ulang oleh Kaprodi
         updatedAt: new Date(),
       })
@@ -107,17 +133,32 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  // Tulis ulang file secara sinkron jika ada file baru
+  // Simpan file baru sebagai versi baru agar versi sebelum revisi tetap bisa dibandingkan.
   try {
-    if (hasFileRab && existingRab.fileRabUrl) {
-      const filePathRab = path.resolve(process.cwd(), existingRab.fileRabUrl);
+    await fs.mkdir(path.resolve(process.cwd(), revisionDir), {
+      recursive: true,
+    });
+
+    if (hasFileRab) {
+      const filePathRab = path.resolve(process.cwd(), newFileRabUrl);
       await fs.writeFile(filePathRab, editFileRabBuffer!);
     }
 
-    if (hasFileTor && existingRab.fileTorUrl) {
-      const filePathTor = path.resolve(process.cwd(), existingRab.fileTorUrl);
+    if (hasFileTor) {
+      const filePathTor = path.resolve(process.cwd(), newFileTorUrl);
       await fs.writeFile(filePathTor, editFileTorBuffer!);
     }
+
+    await saveRevisionArchiveEntry(Number(rabId), {
+      rab: {
+        before: existingRab.fileRabUrl,
+        after: newFileRabUrl,
+      },
+      tor: {
+        before: existingRab.fileTorUrl,
+        after: newFileTorUrl,
+      },
+    });
   } catch (err) {
     console.error("Gagal menimpa file:", err);
     throw createError({

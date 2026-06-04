@@ -225,6 +225,8 @@ const getDetailByDokumentasi = async (
       id: log.id,
       action: log.action,
       catatan: (log.newData as any)?.catatan ?? null,
+      oldData: log.oldData,
+      newData: log.newData,
       createdAt: log.createdAt,
       aktor: { nama: log.actorName, role: log.actorRole },
     })),
