@@ -96,6 +96,7 @@
               Preview Dokumen
             </h3>
 
+            <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex gap-2 p-1 bg-slate-100 rounded-xl inline-flex">
               <button
                 @click="activeDoc = 'rab'"
@@ -120,6 +121,15 @@
               >
                 <Icon name="heroicons:document-duplicate" class="w-4 h-4" />
                 TOR
+              </button>
+            </div>
+              <button
+                v-if="revisionSnapshots.length"
+                @click="openCompare(revisionSnapshots[revisionSnapshots.length - 1])"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition"
+              >
+                <Icon name="heroicons:arrows-right-left" class="w-4 h-4" />
+                Compare Revisi
               </button>
             </div>
           </div>
@@ -215,6 +225,14 @@
                   <div v-if="log.catatan" class="mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-800">
                     <span class="font-semibold">Catatan:</span> {{ log.catatan }}
                   </div>
+                  <button
+                    v-if="revisionSnapshots[i]"
+                    @click="openCompare(revisionSnapshots[i])"
+                    class="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-[#3b5988] hover:underline"
+                  >
+                    <Icon name="heroicons:arrows-right-left" class="w-4 h-4" />
+                    Compare dokumen revisi
+                  </button>
                 </div>
               </div>
             </div>
@@ -329,6 +347,51 @@
 
       </div>
     </main>
+
+    <div
+      v-if="compareOpen"
+      class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm p-4 sm:p-6 flex items-center justify-center"
+    >
+      <div class="w-full max-w-7xl h-[90vh] bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+        <div class="px-5 py-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 class="font-bold text-slate-900">Compare Dokumen Revisi</h3>
+            <p class="text-xs text-slate-500">Sebelum dan sesudah revisi ditampilkan berdampingan.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="flex gap-1 p-1 bg-slate-100 rounded-xl">
+              <button
+                v-for="doc in compareDocs"
+                :key="doc"
+                @click="setCompareDoc(doc)"
+                class="px-3 py-1.5 rounded-lg text-xs font-semibold uppercase"
+                :class="compareDoc === doc ? 'bg-white text-[#3b5988] shadow-sm' : 'text-slate-500'"
+              >
+                {{ doc }}
+              </button>
+            </div>
+            <button
+              @click="closeCompare"
+              class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+            >
+              <Icon name="heroicons:x-mark" class="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+        <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-0 overflow-hidden">
+          <div class="border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col min-h-0">
+            <div class="px-4 py-2 bg-slate-50 border-b border-slate-200 text-sm font-semibold text-slate-700">Sebelum Revisi</div>
+            <iframe v-if="compareBeforeUrl" :src="compareBeforeUrl" class="w-full flex-1" frameborder="0"></iframe>
+            <div v-else class="flex-1 flex items-center justify-center text-sm text-slate-400">File sebelum revisi tidak tersedia.</div>
+          </div>
+          <div class="flex flex-col min-h-0">
+            <div class="px-4 py-2 bg-slate-50 border-b border-slate-200 text-sm font-semibold text-slate-700">Sesudah Revisi</div>
+            <iframe v-if="compareAfterUrl" :src="compareAfterUrl" class="w-full flex-1" frameborder="0"></iframe>
+            <div v-else class="flex-1 flex items-center justify-center text-sm text-slate-400">File setelah revisi tidak tersedia.</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -400,6 +463,14 @@ const catatan = ref('')
 const actionLoading = ref(false)
 const successMsg = ref('')
 const errorMsg = ref('')
+const compareOpen = ref(false)
+const compareDoc = ref<'rab' | 'tor'>('rab')
+const compareDocs = ['rab', 'tor'] as const
+const selectedRevision = ref<any>(null)
+const compareBeforeUrl = ref<string | null>(null)
+const compareAfterUrl = ref<string | null>(null)
+
+const revisionSnapshots = computed(() => detail.value?.revisionSnapshots || [])
 
 const jumlahRevisi = computed(() =>
   (detail.value?.riwayat || []).filter((r: any) => r.action === 'revisi' || r.action === 'ditolak').length
@@ -495,6 +566,63 @@ const downloadDocument = () => {
   }
 }
 
+const cleanupCompareUrls = () => {
+  if (compareBeforeUrl.value) {
+    window.URL.revokeObjectURL(compareBeforeUrl.value)
+    compareBeforeUrl.value = null
+  }
+  if (compareAfterUrl.value) {
+    window.URL.revokeObjectURL(compareAfterUrl.value)
+    compareAfterUrl.value = null
+  }
+}
+
+const loadCompareFiles = async () => {
+  cleanupCompareUrls()
+  if (!selectedRevision.value) return
+
+  const [beforeBlob, afterBlob] = await Promise.all([
+    $fetch(`/api/kaprodi/kegiatan/${id}/file`, {
+      method: 'POST',
+      body: {
+        documentType: compareDoc.value,
+        revisionId: selectedRevision.value.id,
+        side: 'before',
+      },
+      responseType: 'blob',
+    }).catch(() => null),
+    $fetch(`/api/kaprodi/kegiatan/${id}/file`, {
+      method: 'POST',
+      body: {
+        documentType: compareDoc.value,
+        revisionId: selectedRevision.value.id,
+        side: 'after',
+      },
+      responseType: 'blob',
+    }).catch(() => null),
+  ])
+
+  if (beforeBlob) compareBeforeUrl.value = window.URL.createObjectURL(beforeBlob as Blob)
+  if (afterBlob) compareAfterUrl.value = window.URL.createObjectURL(afterBlob as Blob)
+}
+
+const openCompare = async (revision: any) => {
+  selectedRevision.value = revision
+  compareOpen.value = true
+  await loadCompareFiles()
+}
+
+const setCompareDoc = async (doc: 'rab' | 'tor') => {
+  compareDoc.value = doc
+  await loadCompareFiles()
+}
+
+const closeCompare = () => {
+  compareOpen.value = false
+  selectedRevision.value = null
+  cleanupCompareUrls()
+}
+
 // Reload data
 const reloadData = async () => {
   await kaprodiStore.fetchFullData(id)
@@ -534,6 +662,7 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  cleanupCompareUrls()
   kaprodiStore.cleanupFileUrls()
 })
 </script>

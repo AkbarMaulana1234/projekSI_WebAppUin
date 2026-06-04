@@ -238,6 +238,14 @@
                   <p class="text-sm font-semibold text-slate-800">Catatan dari PPK</p>
                   <p class="text-xs text-slate-500">{{ log.aktor?.nama || "PPK" }} · {{ formatDateTime(log.createdAt) }}</p>
                   <p v-if="log.catatan" class="mt-2 text-sm text-orange-800 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">{{ log.catatan }}</p>
+                  <button
+                    v-if="hasPencairanCompare(log)"
+                    @click="openPencairanCompare(log)"
+                    class="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-[#3b5988] hover:underline"
+                  >
+                    <Icon name="heroicons:arrows-right-left" class="w-4 h-4" />
+                    Compare berkas pencairan
+                  </button>
                 </div>
               </div>
             </div>
@@ -386,6 +394,50 @@
 
       </aside>
     </main>
+
+    <div
+      v-if="compareOpen"
+      class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm p-4 sm:p-6 flex items-center justify-center"
+    >
+      <div class="w-full max-w-6xl h-[88vh] bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+        <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between gap-3">
+          <div>
+            <h3 class="font-bold text-slate-900">Compare Berkas Pencairan</h3>
+            <p class="text-xs text-slate-500">Snapshot sebelum dan setelah revisi.</p>
+          </div>
+          <button
+            @click="closePencairanCompare"
+            class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+          >
+            <Icon name="heroicons:x-mark" class="w-5 h-5" />
+          </button>
+        </div>
+        <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 overflow-auto">
+          <div class="border-b lg:border-b-0 lg:border-r border-slate-200 min-h-0">
+            <div class="sticky top-0 px-4 py-2 bg-slate-50 border-b border-slate-200 text-sm font-semibold text-slate-700">Sebelum Revisi</div>
+            <div class="p-4 grid gap-4">
+              <div v-for="doc in compareBeforeDocs" :key="doc.id" class="border border-slate-200 rounded-xl overflow-hidden">
+                <div class="px-3 py-2 border-b border-slate-100 text-sm font-semibold text-slate-700">{{ doc.nama }}</div>
+                <img v-if="isImage(doc.url)" :src="docUrl(doc.url)" :alt="doc.nama" class="w-full max-h-[320px] object-contain bg-slate-50" />
+                <iframe v-else-if="doc.url" :src="docUrl(doc.url)" class="w-full h-[320px]" frameborder="0"></iframe>
+                <div v-else class="h-32 flex items-center justify-center text-sm text-slate-400">Belum ada file.</div>
+              </div>
+            </div>
+          </div>
+          <div class="min-h-0">
+            <div class="sticky top-0 px-4 py-2 bg-slate-50 border-b border-slate-200 text-sm font-semibold text-slate-700">Sesudah Revisi</div>
+            <div class="p-4 grid gap-4">
+              <div v-for="doc in compareAfterDocs" :key="doc.id" class="border border-slate-200 rounded-xl overflow-hidden">
+                <div class="px-3 py-2 border-b border-slate-100 text-sm font-semibold text-slate-700">{{ doc.nama }}</div>
+                <img v-if="isImage(doc.url)" :src="docUrl(doc.url)" :alt="doc.nama" class="w-full max-h-[320px] object-contain bg-slate-50" />
+                <iframe v-else-if="doc.url" :src="docUrl(doc.url)" class="w-full h-[320px]" frameborder="0"></iframe>
+                <div v-else class="h-32 flex items-center justify-center text-sm text-slate-400">Belum ada file.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -429,6 +481,9 @@ const kwitansiFile = ref<File | null>(null);
 const loadingAction = ref(false);
 const successMsg = ref("");
 const errorMsg = ref("");
+const compareOpen = ref(false);
+const compareBeforeDocs = ref<any[]>([]);
+const compareAfterDocs = ref<any[]>([]);
 
 const todayStr = new Date().toLocaleDateString("id-ID", {
   day: "numeric", month: "long", year: "numeric",
@@ -579,6 +634,27 @@ const submitPembayaran = async () => {
 };
 
 const isImage = (url?: string) => /\.(png|jpe?g|gif|webp)$/i.test(url || "");
+const docUrl = (url?: string | null) => {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  return url.startsWith("/") ? url : `/${url}`;
+};
+
+const hasPencairanCompare = (log: any) =>
+  Boolean(log?.oldData?.dokumenUpload?.length || log?.newData?.dokumenUpload?.length);
+
+const openPencairanCompare = (log: any) => {
+  compareBeforeDocs.value = log?.oldData?.dokumenUpload || [];
+  compareAfterDocs.value = log?.newData?.dokumenUpload || [];
+  compareOpen.value = true;
+};
+
+const closePencairanCompare = () => {
+  compareOpen.value = false;
+  compareBeforeDocs.value = [];
+  compareAfterDocs.value = [];
+};
+
 const typeClass = (type: string) =>
   type === "BARANG" ? "bg-blue-50 text-blue-700" : "bg-purple-50 text-purple-700";
 

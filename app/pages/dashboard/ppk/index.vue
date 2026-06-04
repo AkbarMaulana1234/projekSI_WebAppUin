@@ -152,6 +152,128 @@
           </div>
         </div>
 
+        <!-- Menu Utama (Quick Actions Grid) -->
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 mb-4 px-1">
+            Menu Utama PPK
+          </h3>
+          <div
+            class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-8 gap-3 sm:gap-4"
+          >
+            <!-- Pengajuan -->
+            <NuxtLink
+              to="/dashboard/ppk/pengajuan"
+              class="flex flex-col items-center justify-start p-4 rounded-2xl bg-white border border-slate-200 hover:border-[#d1a82a] hover:shadow-md transition-all group text-center"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-[#d1a82a]/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
+              >
+                <Icon
+                  name="heroicons:document-plus"
+                  class="w-6 h-6 text-[#d1a82a]"
+                />
+              </div>
+              <span class="text-xs font-bold text-slate-700 leading-tight"
+                >Pengajuan</span
+              >
+            </NuxtLink>
+
+            <!-- Pencairan -->
+            <NuxtLink
+              to="/dashboard/ppk/pencairan"
+              class="flex flex-col items-center justify-start p-4 rounded-2xl bg-white border border-slate-200 hover:border-emerald-500 hover:shadow-md transition-all group text-center"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
+              >
+                <Icon
+                  name="heroicons:currency-dollar"
+                  class="w-6 h-6 text-emerald-600"
+                />
+              </div>
+              <span class="text-xs font-bold text-slate-700 leading-tight"
+                >Pencairan</span
+              >
+            </NuxtLink>
+
+            <!-- Profil -->
+            <button
+              class="flex flex-col items-center justify-start p-4 rounded-2xl bg-white border border-slate-200 hover:border-slate-500 hover:shadow-md transition-all group text-center cursor-not-allowed opacity-60"
+              disabled
+              title="Coming soon"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
+              >
+                <Icon
+                  name="heroicons:user-group"
+                  class="w-6 h-6 text-slate-600"
+                />
+              </div>
+              <span class="text-xs font-bold text-slate-700 leading-tight"
+                >Profil</span
+              >
+            </button>
+
+            <!-- Monitoring -->
+            <button
+              class="flex flex-col items-center justify-start p-4 rounded-2xl bg-white border border-slate-200 hover:border-purple-500 hover:shadow-md transition-all group text-center cursor-not-allowed opacity-60"
+              disabled
+              title="Coming soon"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
+              >
+                <Icon
+                  name="heroicons:chart-bar"
+                  class="w-6 h-6 text-purple-600"
+                />
+              </div>
+              <span class="text-xs font-bold text-slate-700 leading-tight"
+                >Monitoring</span
+              >
+            </button>
+
+            <!-- Laporan -->
+            <button
+              class="flex flex-col items-center justify-start p-4 rounded-2xl bg-white border border-slate-200 hover:border-blue-500 hover:shadow-md transition-all group text-center cursor-not-allowed opacity-60"
+              disabled
+              title="Coming soon"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
+              >
+                <Icon
+                  name="heroicons:presentation-chart-line"
+                  class="w-6 h-6 text-blue-600"
+                />
+              </div>
+              <span class="text-xs font-bold text-slate-700 leading-tight"
+                >Laporan</span
+              >
+            </button>
+
+            <!-- Pengaturan -->
+            <button
+              class="flex flex-col items-center justify-start p-4 rounded-2xl bg-white border border-slate-200 hover:border-slate-800 hover:shadow-md transition-all group text-center cursor-not-allowed opacity-60"
+              disabled
+              title="Coming soon"
+            >
+              <div
+                class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
+              >
+                <Icon
+                  name="heroicons:cog-8-tooth"
+                  class="w-6 h-6 text-slate-700"
+                />
+              </div>
+              <span class="text-xs font-bold text-slate-700 leading-tight"
+                >Pengaturan</span
+              >
+            </button>
+          </div>
+        </div>
+
         <!-- Budget Hero (Progress Bar) -->
         <div
           class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4"
@@ -379,8 +501,49 @@
               </p>
             </div>
             <span class="px-3 py-1 text-xs font-semibold bg-slate-100 text-slate-600 rounded-full">
-              {{ activityRows.length }} kegiatan
+              {{ filteredActivityRows.length }} / {{ activityRows.length }} kegiatan
             </span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-5">
+            <div class="md:col-span-2 relative">
+              <Icon name="heroicons:magnifying-glass" class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                v-model="searchQuery"
+                type="search"
+                placeholder="Cari ormawa atau kegiatan..."
+                class="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#d1a82a]/20 focus:border-[#d1a82a] bg-white"
+              />
+            </div>
+            <select
+              v-model="ormawaFilter"
+              class="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#d1a82a]/20 focus:border-[#d1a82a] bg-white"
+            >
+              <option value="all">Semua Ormawa</option>
+              <option v-for="orm in activityOrmawaOptions" :key="orm" :value="orm">
+                {{ orm }}
+              </option>
+            </select>
+            <div class="grid grid-cols-2 gap-3">
+              <select
+                v-model="approvalFilter"
+                class="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#d1a82a]/20 focus:border-[#d1a82a] bg-white"
+              >
+                <option value="all">Semua Status</option>
+                <option value="approved">Sudah Disetujui</option>
+                <option value="pending">Belum Disetujui</option>
+              </select>
+              <select
+                v-model="dateFilter"
+                class="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#d1a82a]/20 focus:border-[#d1a82a] bg-white"
+              >
+                <option value="all">Semua Tanggal</option>
+                <option value="no_date">Belum Ada Tanggal</option>
+                <option value="active">Hari Ini</option>
+                <option value="past">Sudah Terlewat</option>
+                <option value="upcoming">Akan Datang</option>
+              </select>
+            </div>
           </div>
 
           <div class="overflow-x-auto">
@@ -389,6 +552,7 @@
                 <tr class="border-b border-slate-200 text-left text-slate-500">
                   <th class="py-2 font-semibold">Ormawa</th>
                   <th class="py-2 font-semibold">Judul Kegiatan</th>
+                  <th class="py-2 font-semibold">Tanggal Kegiatan</th>
                   <th class="py-2 font-semibold">Status RAB</th>
                   <th class="py-2 font-semibold">Status Kegiatan</th>
                   <th class="py-2 font-semibold">Pencairan</th>
@@ -397,18 +561,24 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-if="activityRows.length === 0">
-                  <td colspan="6" class="py-8 text-center text-slate-500">
-                    Belum ada pengajuan kegiatan dari ormawa di fakultas Anda.
+                <tr v-if="filteredActivityRows.length === 0">
+                  <td colspan="8" class="py-8 text-center text-slate-500">
+                    Tidak ada kegiatan yang cocok dengan pencarian/filter.
                   </td>
                 </tr>
                 <tr
-                  v-for="item in activityRows"
+                  v-for="item in filteredActivityRows"
                   :key="item.id"
                   class="border-b border-slate-100 hover:bg-slate-50"
                 >
                   <td class="py-3 font-medium text-slate-800">{{ item.ormawa.nama }}</td>
                   <td class="py-3 text-slate-700">{{ item.judulKegiatan }}</td>
+                  <td class="py-3">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold" :class="activityDateClass(item)">
+                      <Icon name="heroicons:calendar-days" class="w-4 h-4" />
+                      {{ activityDateLabel(item) }}
+                    </span>
+                  </td>
                   <td class="py-3 text-slate-600 capitalize">{{ item.status.replaceAll("_", " ") }}</td>
                   <td class="py-3 text-slate-600">{{ item.statusKegiatan || "Belum dibuat" }}</td>
                   <td class="py-3 text-slate-600">
@@ -517,6 +687,10 @@ const { data: kegiatanData } = await useFetch<{
   // State
   const selectedOrmawaId = ref<string>("");
   const selectedOrmawa = ref<OrmawaAnggaran | null>(null);
+  const searchQuery = ref("");
+  const ormawaFilter = ref("all");
+  const approvalFilter = ref("all");
+  const dateFilter = ref("all");
 
   // Computed
   const todayStr = computed(() =>
@@ -653,6 +827,94 @@ const { data: kegiatanData } = await useFetch<{
       : [],
   );
 
+  const todayDate = () => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  };
+
+  const normalizeDate = (value?: string | null) => {
+    if (!value) return null;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    date.setHours(0, 0, 0, 0);
+    return date;
+  };
+
+  const getActivityDateState = (item: PpkActivity) => {
+    const start = normalizeDate(item.tanggalMulai);
+    const end = normalizeDate(item.tanggalSelesai) || start;
+    if (!start) return "no_date";
+
+    const today = todayDate();
+    if (end && end < today) return "past";
+    if (start <= today && (!end || end >= today)) return "active";
+    return "upcoming";
+  };
+
+  const activityDateLabel = (item: PpkActivity) => {
+    const state = getActivityDateState(item);
+    if (state === "no_date") return "Belum ada tanggal";
+
+    const start = formatDateShort(item.tanggalMulai);
+    const end =
+      item.tanggalSelesai && item.tanggalSelesai !== item.tanggalMulai
+        ? formatDateShort(item.tanggalSelesai)
+        : "";
+    const prefix =
+      state === "active"
+        ? "Hari ini"
+        : state === "past"
+        ? "Terlewat"
+        : "Akan datang";
+    return `${prefix}: ${start}${end ? ` - ${end}` : ""}`;
+  };
+
+  const activityDateClass = (item: PpkActivity) => {
+    const state = getActivityDateState(item);
+    const map: Record<string, string> = {
+      no_date: "bg-amber-100 text-amber-700 border border-amber-200",
+      active: "bg-red-100 text-red-700 border border-red-200",
+      past: "bg-emerald-100 text-emerald-700 border border-emerald-200",
+      upcoming: "bg-sky-100 text-sky-700 border border-sky-200",
+    };
+    return map[state];
+  };
+
+  const approvedStatuses = new Set([
+    "waiting_spi",
+    "ditolak_spi",
+    "revisi_spi",
+    "disetujui",
+    "lunas_ppk",
+    "selesai_spi",
+  ]);
+
+  const isApprovedByPpk = (status: string) => approvedStatuses.has(status);
+
+  const activityOrmawaOptions = computed(() =>
+    Array.from(new Set(activityRows.value.map((item) => item.ormawa.nama))).sort(),
+  );
+
+  const filteredActivityRows = computed(() => {
+    const query = searchQuery.value.trim().toLowerCase();
+    return activityRows.value.filter((item) => {
+      const haystack = `${item.ormawa.nama} ${item.ormawa.kode} ${item.judulKegiatan}`.toLowerCase();
+      const matchesQuery = !query || haystack.includes(query);
+      const matchesOrmawa =
+        ormawaFilter.value === "all" || item.ormawa.nama === ormawaFilter.value;
+      const approved = isApprovedByPpk(item.status);
+      const matchesApproval =
+        approvalFilter.value === "all" ||
+        (approvalFilter.value === "approved" && approved) ||
+        (approvalFilter.value === "pending" && !approved);
+      const matchesDate =
+        dateFilter.value === "all" ||
+        getActivityDateState(item) === dateFilter.value;
+      return matchesQuery && matchesOrmawa && matchesApproval && matchesDate;
+    });
+  });
+
   // Helpers
   const formatRp = (n: number) =>
     "Rp " + new Intl.NumberFormat("id-ID").format(n || 0);
@@ -661,6 +923,13 @@ const { data: kegiatanData } = await useFetch<{
     if (n >= 1_000) return "Rp " + (n / 1_000).toFixed(0) + "rb";
     return "Rp " + n;
   };
+  const formatDateShort = (d?: string | null) =>
+    d
+      ? new Date(d).toLocaleDateString("id-ID", {
+          day: "2-digit",
+          month: "short",
+        })
+      : "-";
 </script>
 
 <style scoped>
