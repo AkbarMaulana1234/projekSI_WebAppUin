@@ -10,6 +10,7 @@ import {
   ormawaTable,
   approvalLogTable,
 } from "~~/server/db/schema";
+import { readRevisionArchive } from "~~/server/utils/revisionArchive";
 
 export default defineEventHandler(async (event) => {
   try {
@@ -117,6 +118,7 @@ export default defineEventHandler(async (event) => {
       .innerJoin(usersTable, eq(usersTable.id, approvalLogTable.actorId))
       .where(eq(approvalLogTable.pengajuanRabId, id))
       .orderBy(asc(approvalLogTable.createdAt));
+    const revisionSnapshots = await readRevisionArchive(id);
 
     return {
       success: true,
@@ -154,6 +156,7 @@ export default defineEventHandler(async (event) => {
             role: r.actor.role,
           },
         })),
+        revisionSnapshots,
       },
     };
   } catch (error: any) {

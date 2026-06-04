@@ -5,6 +5,10 @@ import path from "node:path";
 import { eq, and } from "drizzle-orm";
 import { useDrizzle } from "~~/server/db";
 import { pengajuanRabTable } from "~~/server/db/schema";
+import {
+  getRevisionArchiveEntry,
+  resolveRevisionFilePath,
+} from "~~/server/utils/revisionArchive";
 
 export default defineEventHandler(async (event) => {
   const rabId = Number(getRouterParam(event, "id"));
@@ -13,12 +17,18 @@ export default defineEventHandler(async (event) => {
   }
 
   const body = await readBody(event);
-  const { documentType = "rab" } = body;
+  const { documentType = "rab", revisionId = "", side = "after" } = body;
 
   if (!["rab", "tor"].includes(documentType)) {
     throw createError({
       statusCode: 400,
       message: "Tipe dokumen tidak valid. Gunakan 'rab' atau 'tor'.",
+    });
+  }
+  if (revisionId && !["before", "after"].includes(side)) {
+    throw createError({
+      statusCode: 400,
+      message: "Sisi revisi tidak valid. Gunakan 'before' atau 'after'.",
     });
   }
 
@@ -55,16 +65,26 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  const revisionEntry = revisionId
+    ? await getRevisionArchiveEntry(rabId, String(revisionId))
+    : null;
+  const revisionFilePath = revisionEntry
+    ? resolveRevisionFilePath(
+        revisionEntry,
+        documentType as "rab" | "tor",
+        side as "before" | "after",
+      )
+    : null;
   const fileUrl = documentType === "tor" ? rab.fileTorUrl : rab.fileRabUrl;
 
-  if (!fileUrl) {
+  if (!revisionFilePath && !fileUrl) {
     throw createError({
       statusCode: 404,
       message: `File ${documentType.toUpperCase()} belum diunggah untuk pengajuan ini`,
     });
   }
 
-  const filePath = path.resolve(process.cwd(), fileUrl.trim());
+  const filePath = revisionFilePath || path.resolve(process.cwd(), fileUrl.trim());
 
   if (!fs.existsSync(filePath)) {
     throw createError({
