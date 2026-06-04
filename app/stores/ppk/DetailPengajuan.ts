@@ -38,6 +38,12 @@ interface DetailPengajuan {
       role: string;
     };
   }>;
+  revisionSnapshots?: Array<{
+    id: string;
+    createdAt: string;
+    rab: { before: string | null; after: string | null };
+    tor: { before: string | null; after: string | null };
+  }>;
 }
 
 export const usePpkDetailStore = defineStore("ppkDetailStore", {
