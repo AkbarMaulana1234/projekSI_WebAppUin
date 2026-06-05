@@ -15,6 +15,8 @@ import {
   getDokumenPpkFromMeta,
   mysqlTimestamp,
   resolveTagihanId,
+  assertPpkAksesTagihan,
+  resolveVirtualStatus,
 } from "~~/server/utils/pencairanHelpers";
 
 export default defineEventHandler(async (event) => {
@@ -35,7 +37,14 @@ export default defineEventHandler(async (event) => {
       .from(usersTable)
       .where(eq(usersTable.id, Number(user.id)));
 
-    if (!ppkData?.fakultasId) {
+    if (!ppkData) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: "Data PPK tidak ditemukan",
+      });
+    }
+
+    if (!ppkData.fakultasId) {
       throw createError({
         statusCode: 403,
         statusMessage: "PPK tidak memiliki data fakultas",
@@ -73,10 +82,24 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    if (tagihan.statusTagihan !== "TRANSFER_DILAKUKAN") {
+    const hasAccess = await assertPpkAksesTagihan(
+      db,
+      tagihanId,
+      ppkData.fakultasId ? String(ppkData.fakultasId) : null,
+    );
+
+    if (!hasAccess) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: "Anda tidak memiliki akses untuk mencatat pembayaran tagihan ini",
+      });
+    }
+
+    const virtualStatus = await resolveVirtualStatus(tagihan.statusTagihan, tagihanId);
+    if (virtualStatus !== "TRANSFER_DILAKUKAN") {
       throw createError({
         statusCode: 422,
-        statusMessage: `Konfirmasi transfer terlebih dahulu. Status saat ini: ${tagihan.statusTagihan}`,
+        statusMessage: `Konfirmasi transfer terlebih dahulu. Status saat ini: ${virtualStatus}`,
       });
     }
 
@@ -158,7 +181,7 @@ export default defineEventHandler(async (event) => {
         tagihanId,
         action: "pay",
         komentar: catatan?.trim() || "Pembayaran telah dilakukan",
-        userId: Number(user.id),
+        userId: ppkData.id,
       });
     });
 
