@@ -32,8 +32,17 @@ export default defineEventHandler(async (event) => {
     const tanggalMulai = getField("tanggalMulai");
     const tanggalSelesai = getField("tanggalSelesai");
     const deskripsi = getField("deskripsi");
-    const totalAnggaran = getField("totalAnggaran");
+    const totalAnggaranRaw = getField("totalAnggaran");
     const statusRaw = getField("status") || "draft";
+
+    // Validasi dan konversi totalAnggaran
+    const totalAnggaran = parseFloat(totalAnggaranRaw);
+    if (isNaN(totalAnggaran) || totalAnggaran <= 0) {
+      throw createError({
+        statusCode: 400,
+        message: "Total anggaran harus berupa angka positif",
+      });
+    }
 
     // Validasi input wajib
     if (!nomorPengajuan)
@@ -57,11 +66,6 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 400,
         message: "Tanggal selesai wajib diisi",
-      });
-    if (!totalAnggaran)
-      throw createError({
-        statusCode: 400,
-        message: "Total anggaran wajib diisi",
       });
 
     // Validasi status
