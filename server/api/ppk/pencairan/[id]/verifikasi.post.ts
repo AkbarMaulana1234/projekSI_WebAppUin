@@ -1,59 +1,18 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, or } from "drizzle-orm";
 import { useDrizzle } from "~~/server/db";
 import {
-  dokumentasiKegiatanTable,
   tagihanPencairanTable,
   usersTable,
-  ormawaTable,
   logDokumentasiTagihanTable,
 } from "~~/server/db/schema";
 import {
-  buildDokumenUpload,
   decodeUrlId,
   isAllDocsUploaded,
-  readPencairanMeta,
   resolveTagihanId,
-  routeIdToDokumentasiId,
   mysqlTimestamp,
-  writePencairanMeta,
+  toPublicUploadUrl,
+  assertPpkAksesTagihan,
 } from "~~/server/utils/pencairanHelpers";
-
-async function assertPpkAksesTagihan(
-  db: ReturnType<typeof useDrizzle>,
-  tagihanId: number,
-  fakultasId: number,
-  dokumentasiId: number | null,
-) {
-  const [tagihan] = await db
-    .select({ kegiatanId: tagihanPencairanTable.kegiatanId })
-    .from(tagihanPencairanTable)
-    .where(eq(tagihanPencairanTable.id, tagihanId));
-
-  if (!tagihan) return false;
-
-  if (dokumentasiId) {
-    const [row] = await db
-      .select({ fakultasId: usersTable.fakultasId })
-      .from(dokumentasiKegiatanTable)
-      .innerJoin(usersTable, eq(dokumentasiKegiatanTable.uploadedBy, usersTable.id))
-      .where(eq(dokumentasiKegiatanTable.id, dokumentasiId));
-    return row?.fakultasId === fakultasId;
-  }
-
-  const [row] = await db
-    .select({ fakultasId: usersTable.fakultasId })
-    .from(dokumentasiKegiatanTable)
-    .innerJoin(usersTable, eq(dokumentasiKegiatanTable.uploadedBy, usersTable.id))
-    .where(
-      and(
-        eq(dokumentasiKegiatanTable.kegiatanId, tagihan.kegiatanId),
-        eq(usersTable.fakultasId, fakultasId),
-      ),
-    )
-    .limit(1);
-
-  return Boolean(row);
-}
 
 export default defineEventHandler(async (event) => {
   try {
@@ -85,17 +44,14 @@ export default defineEventHandler(async (event) => {
     const user = event.context.user;
     const db = useDrizzle();
 
+    // Fetch PPK data (fakultasId may be null)
     const [ppkData] = await db
       .select({ fakultasId: usersTable.fakultasId, id: usersTable.id })
       .from(usersTable)
       .where(eq(usersTable.id, Number(user.id)));
 
-    if (!ppkData?.fakultasId) {
-      throw createError({
-        statusCode: 403,
-        statusMessage: "PPK tidak memiliki data fakultas",
-      });
-    }
+    // If fakultasId is null, treat as unrestricted access
+    const ppkFakultasId = ppkData?.fakultasId ? String(ppkData.fakultasId) : null;
 
     const tagihanId = await resolveTagihanId(
       db,
@@ -111,15 +67,10 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    const meta = await readPencairanMeta(tagihanId);
-    const dokumentasiId =
-      routeIdToDokumentasiId(routeId) ?? meta.dokumentasiId ?? null;
-
     const hasAccess = await assertPpkAksesTagihan(
       db,
       tagihanId,
-      ppkData.fakultasId,
-      dokumentasiId,
+      ppkFakultasId ?? "",
     );
 
     if (!hasAccess) {
@@ -151,53 +102,83 @@ export default defineEventHandler(async (event) => {
       });
     }
 
-    if (keputusan === "terverifikasi" && dokumentasiId) {
-      const [dokumentasi] = await db
+    if (keputusan === "terverifikasi" && tagihanId) {
+      const [tagihanDoc] = await db
         .select({
-          tipeDokumen: dokumentasiKegiatanTable.tipeDokumen,
-          namaToko: dokumentasiKegiatanTable.namaToko,
-          nomorRekeningToko: dokumentasiKegiatanTable.nomorRekeningToko,
-          namaPemilikRekeningToko: dokumentasiKegiatanTable.namaPemilikRekeningToko,
-          fotoBarangUrl: dokumentasiKegiatanTable.fotoBarangUrl,
-          strukBelanjaUrl: dokumentasiKegiatanTable.strukBelanjaUrl,
-          namaPenyediaJasa: dokumentasiKegiatanTable.namaPenyediaJasa,
-          nomorRekeningJasa: dokumentasiKegiatanTable.nomorRekeningJasa,
-          namaPemilikRekeningJasa: dokumentasiKegiatanTable.namaPemilikRekeningJasa,
-          skUrl: dokumentasiKegiatanTable.skUrl,
-          spmtUrl: dokumentasiKegiatanTable.spmtUrl,
-          amprahUrl: dokumentasiKegiatanTable.amprahUrl,
-          npwpUrl: dokumentasiKegiatanTable.npwpUrl,
-          ktpUrl: dokumentasiKegiatanTable.ktpUrl,
+          tipeDokumen: tagihanPencairanTable.tipeTagihan,
+          fotoBarangUrl: tagihanPencairanTable.fotoBarangUrl,
+          strukBelanjaUrl: tagihanPencairanTable.strukFileUrl,
+          tokoNama: tagihanPencairanTable.tokoNama,
+          rekeningPenerima: tagihanPencairanTable.rekeningPenerima,
+          skUrl: tagihanPencairanTable.skFileUrl,
+          spmtUrl: tagihanPencairanTable.spmtFileUrl,
+          amprahUrl: tagihanPencairanTable.amprahFileUrl,
+          npwpUrl: tagihanPencairanTable.npwpFileUrl,
+          ktpUrl: tagihanPencairanTable.ktpFileUrl,
+          bukuRekeningFileUrl: tagihanPencairanTable.bukuRekeningFileUrl,
         })
-        .from(dokumentasiKegiatanTable)
-        .where(eq(dokumentasiKegiatanTable.id, dokumentasiId));
+        .from(tagihanPencairanTable)
+        .where(eq(tagihanPencairanTable.id, tagihanId));
 
-      if (dokumentasi) {
-        const docs = buildDokumenUpload({
-          dokumentasiId,
-          kegiatanId: 0,
-          tipeDokumen: dokumentasi.tipeDokumen,
-          deskripsi: null,
-          createdAt: "",
-          ...dokumentasi,
-        });
+      if (tagihanDoc) {
+        const isBarang = tagihanDoc.tipeDokumen === "BARANG";
+        const docs = isBarang
+          ? [
+              {
+                id: "foto_barang",
+                nama: "Foto Barang",
+                uploaded: Boolean(tagihanDoc.fotoBarangUrl),
+              },
+              {
+                id: "struk_belanja",
+                nama: "Foto Bon / Struk",
+                uploaded: Boolean(tagihanDoc.strukBelanjaUrl),
+              },
+            ]
+          : [
+              {
+                id: "sk",
+                nama: "SK",
+                uploaded: Boolean(tagihanDoc.skUrl),
+              },
+              {
+                id: "spmt",
+                nama: "SPMT",
+                uploaded: Boolean(tagihanDoc.spmtUrl),
+              },
+              {
+                id: "amprah",
+                nama: "Amprah",
+                uploaded: Boolean(tagihanDoc.amprahUrl),
+              },
+              {
+                id: "npwp",
+                nama: "NPWP",
+                uploaded: Boolean(tagihanDoc.npwpUrl),
+              },
+              {
+                id: "ktp",
+                nama: "Foto KTP",
+                uploaded: Boolean(tagihanDoc.ktpUrl),
+              },
+              {
+                id: "buku_rekening",
+                nama: "Buku Rekening",
+                uploaded: Boolean(tagihanDoc.bukuRekeningFileUrl),
+              },
+            ];
 
         if (!isAllDocsUploaded(docs)) {
           throw createError({
             statusCode: 422,
-            statusMessage:
-              "Dokumen ormawa belum lengkap. Minta revisi jika ada yang kurang.",
+            statusMessage: "Dokumen ormawa belum lengkap. Minta revisi jika ada yang kurang.",
           });
         }
       }
     }
 
     const statusBaru =
-      keputusan === "terverifikasi" ? "DOKUMEN_LENGKAP" : "DIKEMBALIKAN";
-
-    if (dokumentasiId) {
-      await writePencairanMeta(tagihanId, { dokumentasiId });
-    }
+      keputusan === "terverifikasi" ? "TERVERIFIKASI" : "DIKEMBALIKAN";
 
     await db.transaction(async (tx) => {
       await tx
@@ -212,7 +193,7 @@ export default defineEventHandler(async (event) => {
         tagihanId,
         action: keputusan === "terverifikasi" ? "approve" : "revisi",
         komentar: catatan?.trim() || (keputusan === "terverifikasi" ? "Dokumen diverifikasi" : "Perlu perbaikan"),
-        userId: Number(user.id),
+        userId: ppkData.id,
       });
     });
 

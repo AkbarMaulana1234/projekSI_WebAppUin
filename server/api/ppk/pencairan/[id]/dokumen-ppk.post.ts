@@ -10,6 +10,7 @@ import {
   readPencairanMeta,
   resolveTagihanId,
   writePencairanMeta,
+  assertPpkAksesTagihan,
 } from "~~/server/utils/pencairanHelpers";
 
 const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
@@ -34,11 +35,18 @@ export default defineEventHandler(async (event) => {
     const db = useDrizzle();
 
     const [ppkData] = await db
-      .select({ fakultasId: usersTable.fakultasId })
+      .select({ fakultasId: usersTable.fakultasId, id: usersTable.id })
       .from(usersTable)
       .where(eq(usersTable.id, Number(user.id)));
 
-    if (!ppkData?.fakultasId) {
+    if (!ppkData) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: "Data PPK tidak ditemukan",
+      });
+    }
+
+    if (!ppkData.fakultasId) {
       throw createError({
         statusCode: 403,
         statusMessage: "PPK tidak memiliki data fakultas",
@@ -48,7 +56,7 @@ export default defineEventHandler(async (event) => {
     const tagihanId = await resolveTagihanId(
       db,
       routeId,
-      Number(user.id),
+      ppkData.id,
       ppkData.fakultasId,
     );
 
@@ -71,6 +79,19 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 404,
         statusMessage: "Tagihan pencairan tidak ditemukan",
+      });
+    }
+
+    const hasAccess = await assertPpkAksesTagihan(
+      db,
+      tagihanId,
+      ppkData.fakultasId ? String(ppkData.fakultasId) : null,
+    );
+
+    if (!hasAccess) {
+      throw createError({
+        statusCode: 403,
+        statusMessage: "Anda tidak memiliki akses untuk mengunggah dokumen tagihan ini",
       });
     }
 
@@ -133,8 +154,7 @@ export default defineEventHandler(async (event) => {
     const nextSpb = spbPath ?? current.spbFileUrl ?? null;
     const nextKwitansi = kwitansiPath ?? current.kwitansiFileUrl ?? null;
 
-    const statusBaru =
-      nextSpb && nextKwitansi ? "TERVERIFIKASI" : "DOKUMEN_LENGKAP";
+    const statusBaru = "TERVERIFIKASI";
 
     await writePencairanMeta(tagihanId, {
       spbFileUrl: nextSpb,
