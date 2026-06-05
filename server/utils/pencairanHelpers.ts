@@ -9,6 +9,7 @@ import {
   pengajuanRabTable,
   tagihanPencairanTable,
   usersTable,
+  ormawaTable,
 } from "~~/server/db/schema";
 
 export const GROUP_ID_OFFSET = 1_000_000;
@@ -17,6 +18,7 @@ type PencairanMeta = {
   spbFileUrl?: string | null;
   kwitansiFileUrl?: string | null;
   dokumentasiId?: number | null;
+  transferDone?: boolean | null;
 };
 
 const pencairanMetaPath = (tagihanId: number) =>
@@ -412,10 +414,60 @@ export async function resolveTagihanId(
   ppkUserId: number,
   fakultasId: number,
 ) {
-  if (routeId > 0) return routeId;
+  return Math.abs(routeId);
+}
 
-  const dokumentasiId = routeIdToDokumentasiId(routeId);
-  if (!dokumentasiId) return null;
+export async function assertPpkAksesTagihan(
+  db: ReturnType<typeof useDrizzle>,
+  tagihanId: number,
+  fakultasId: string | number | null | undefined,
+): Promise<boolean> {
+  // If PPK has no faculty, allow unrestricted access
+  if (!fakultasId) {
+    return true;
+  }
 
-  return ensureTagihanForDokumentasi(db, dokumentasiId, ppkUserId, fakultasId);
+  const ppkFakultasIdStr = String(fakultasId);
+  const ppkFakultasIdNum = Number(fakultasId);
+
+  const [tagihan] = await db
+    .select({
+      fakultasId: tagihanPencairanTable.fakultasId,
+      creatorFakultasId: usersTable.fakultasId,
+      ormawaFakultasId: ormawaTable.fakultasId,
+    })
+    .from(tagihanPencairanTable)
+    .innerJoin(usersTable, eq(tagihanPencairanTable.createdBy, usersTable.id))
+    .leftJoin(ormawaTable, eq(usersTable.ormawaId, ormawaTable.id))
+    .where(eq(tagihanPencairanTable.id, tagihanId));
+
+  if (!tagihan) {
+    return true; // Let caller throw 404
+  }
+
+  return (
+    String(tagihan.fakultasId) === ppkFakultasIdStr ||
+    tagihan.creatorFakultasId === ppkFakultasIdNum ||
+    tagihan.ormawaFakultasId === ppkFakultasIdNum
+  );
+}
+
+export async function resolveVirtualStatus(
+  dbStatus: string | null,
+  tagihanId: number,
+): Promise<string | null> {
+  if (dbStatus !== "TERVERIFIKASI") {
+    return dbStatus;
+  }
+
+  const meta = await readPencairanMeta(tagihanId);
+  if (meta.transferDone) {
+    return "TRANSFER_DILAKUKAN";
+  }
+
+  if (meta.spbFileUrl && meta.kwitansiFileUrl) {
+    return "TERVERIFIKASI";
+  }
+
+  return "DOKUMEN_LENGKAP";
 }
